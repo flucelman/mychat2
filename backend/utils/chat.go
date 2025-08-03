@@ -3,15 +3,14 @@ package utils
 import (
 	"backend/global"
 	"backend/models"
-	"fmt"
-	"io"
-	"net/http"
+	"context"
 	"os"
-	"strings"
 
 	"github.com/google/uuid"
+	"github.com/sashabaranov/go-openai"
 )
 
+// 保存对话信息到数据库
 func SaveDB(userID, chatID, Role, Content, Model string) string {
 	message := models.Message{
 		MessageID: uuid.New().String(),
@@ -35,39 +34,37 @@ func SaveDB(userID, chatID, Role, Content, Model string) string {
 	return "success"
 }
 
-func AIResponse(Model, Content string) string {
-	url := os.Getenv("AI_URL") + "/chat/completions"
-	jsonStr := `{
-		"model": "` + Model + `",
-		"messages": [
-		  {
-			"role": "user",
-			"content": "` + Content + `"
-		  }
-		],
-		"temperature": 0.8,
-		"max_tokens": 1024,
-		"top_p": 1,
-		"frequency_penalty": 0,
-		"presence_penalty": 0,
-		"stream": false
-	  }`
-	payload := strings.NewReader(strings.ReplaceAll(jsonStr, "\n", ""))
-	request, err := http.NewRequest("POST", url, payload)
-	fmt.Println("请求体request:", request)
+// 调用AI接口
+func AIResponse(model string, temperature float32, max_tokens int, top_p float32, frequency_penalty float32, content string) string {
+	config := openai.DefaultConfig(os.Getenv("AI_API_KEY"))
+
+	// 如果设置了自定义 AI_URL，则使用自定义端点
+	if aiURL := os.Getenv("AI_URL"); aiURL != "" {
+		config.BaseURL = aiURL
+	}
+
+	client := openai.NewClientWithConfig(config)
+
+	resp, err := client.CreateChatCompletion(
+		context.Background(),
+		openai.ChatCompletionRequest{
+			Model: model,
+			Messages: []openai.ChatCompletionMessage{
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: content,
+				},
+			},
+			Temperature:      temperature,
+			MaxTokens:        max_tokens,
+			TopP:             top_p,
+			FrequencyPenalty: frequency_penalty,
+		},
+	)
+
 	if err != nil {
 		return err.Error()
 	}
-	request.Header.Add("Authorization", "Bearer "+os.Getenv("AI_API_KEY"))
-	request.Header.Add("Content-Type", "application/json")
-	fmt.Println("开始发送请求")
-	client := &http.Client{}
-	response, err := client.Do(request)
-	fmt.Println("请求响应response:", response)
-	if err != nil {
-		return err.Error()
-	}
-	defer response.Body.Close()
-	body, _ := io.ReadAll(response.Body)
-	return string(body)
+
+	return resp.Choices[0].Message.Content
 }

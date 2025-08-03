@@ -5,7 +5,7 @@
   "identifier": "com.mychat.app",
   "build": {
     "beforeDevCommand": "npm run dev",
-    "devUrl": "http://192.168.14.125:9000",
+    "devUrl": "http://192.168.14.125:9001",
     "beforeBuildCommand": "npm run build",
     "frontendDist": "../dist"
   },

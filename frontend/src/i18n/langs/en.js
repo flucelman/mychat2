@@ -14,6 +14,10 @@ export default {
         register: 'Register',
         email: 'Email',
         password: 'Password',
-        username: 'Username'
+        username: 'Username',
+        loginSuccess: 'Login Success',
+        loginFailed: 'Login Failed, Please Check Your Account and Password',
+        registerSuccess: 'Register Success',
+        AI_response_error: 'AI Response Error'
     }
 }

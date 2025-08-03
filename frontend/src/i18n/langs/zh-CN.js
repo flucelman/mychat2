@@ -17,6 +17,7 @@ export default {
         username: '用户名',
         loginSuccess: '登录成功',
         loginFailed: '登录失败,请检查账号和密码',
-        registerSuccess: '注册成功'
+        registerSuccess: '注册成功',
+        AI_response_error: 'AI响应错误'
     }
 }

@@ -1,11 +1,16 @@
 <template>
-    <div class="send-container">
+    <div class="send-container" @click="handleMessage">
         <sendIcon class="send-icon"/>
     </div>
 </template>
 
 <script setup>
 import sendIcon from '@/assets/icons/上.svg'
+import { useChatConfigStore } from '@/stores/chat_config'
+const chatConfigStore = useChatConfigStore()
+const handleMessage = () => {
+    chatConfigStore.sendUserMessage()
+}
 </script>
 
 <style scoped>

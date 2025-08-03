@@ -33,7 +33,7 @@ func SetupRouter() *gin.Engine {
 		{
 			chat.POST("/history", controller.GetChatHistory)
 			chat.POST("/message/:chat_id", controller.GetChatMessage)
-			chat.POST("/add_message", controller.AddChatMessage)
+			chat.POST("/add_user_message", controller.AddUserMessage)
 		}
 	}
 

@@ -36,7 +36,7 @@ export default defineConfig({
     cors: true,
     hmr: {
       host: '192.168.14.125',
-      port: 9000, // HMR 端口
+      port: 9001, // HMR 端口
     },
    // 检测到/api则代理到后端
     proxy: {

@@ -94,13 +94,13 @@ func GetChatMessage(ctx *gin.Context) {
 如果是空聊天记录，则创建新的聊天记录
 如果非空，则添加对话信息
 */
-func AddChatMessage(ctx *gin.Context) {
+func AddUserMessage(ctx *gin.Context) {
 	userID := ctx.GetString("userID")
 	var input struct {
-		ChatID  string `json:"chat_id"`
-		Role    string `json:"role"`
-		Content string `json:"content"`
-		Model   string `json:"model"`
+		ChatID      string         `json:"chat_id"`
+		AIConfig    map[string]any `json:"AI_config"`
+		UserMessage string         `json:"user_message"`
+		FileUrl     []string       `json:"file_url"`
 	}
 	if err := ctx.ShouldBindJSON(&input); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -114,10 +114,10 @@ func AddChatMessage(ctx *gin.Context) {
 			ChatID: input.ChatID,
 			UserID: userID,
 			Title: func() string {
-				if len(input.Content) <= 10 {
-					return input.Content
+				if len(input.UserMessage) <= 10 {
+					return input.UserMessage
 				}
-				return input.Content[:10]
+				return input.UserMessage[:10] + "..."
 			}(),
 		}
 		if err := global.DB.Create(&chat).Error; err != nil {
@@ -125,19 +125,75 @@ func AddChatMessage(ctx *gin.Context) {
 			return
 		}
 	}
-	// 2. 添加对话信息
-	response := utils.SaveDB(userID, input.ChatID, input.Role, input.Content, input.Model)
+	// 2. 添加用户信息到数据库
+	response := utils.SaveDB(userID, input.ChatID, "user", input.UserMessage, input.AIConfig["model"].(string))
 	if response != "success" {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": response})
 		return
 	}
 
-	// 3. 判断是用户还是助手
-	fmt.Printf("收到的 Role: %s\n", input.Role)
-	if input.Role == "user" {
-		fmt.Println("开始调用 AI 接口...")
-		response = utils.AIResponse(input.Model, input.Content)
-		fmt.Println("AI 响应:", response)
+	// 3.检查是否有file_url
+	if len(input.FileUrl) > 0 {
+		// 拿到url，进行解析
+		// 如果是文件则进行markitdown返回string，如果是图片、视频、音频则返回url
+		// 将string或者url保存到数据库
+		// 调用不一样的AI接口
+		fmt.Println("开始解析文件")
 	}
-	ctx.JSON(http.StatusOK, gin.H{"success": true, "chat_id": input.ChatID})
+
+	// 4. 调用普通对话AI接口
+	fmt.Println("开始调用 AI 接口...")
+	temperature, ok := input.AIConfig["temperature"].(float64)
+	if !ok {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "temperature must be a number"})
+		return
+	}
+
+	topP, ok := input.AIConfig["top_p"].(float64)
+	if !ok {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "top_p must be a number"})
+		return
+	}
+
+	frequencyPenalty, ok := input.AIConfig["frequency_penalty"].(float64)
+	if !ok {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "frequency_penalty must be a number"})
+		return
+	}
+
+	maxTokens, ok := input.AIConfig["max_tokens"].(float64)
+	if !ok {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "max_tokens must be a number"})
+		return
+	}
+
+	response = utils.AIResponse(
+		input.AIConfig["model"].(string),
+		float32(temperature),
+		int(maxTokens),
+		float32(topP),
+		float32(frequencyPenalty),
+		input.UserMessage,
+	)
+	fmt.Println("AI 响应:", response)
+	ctx.JSON(http.StatusOK, gin.H{"success": true, "data": gin.H{"chat_id": input.ChatID, "AI_response": response}})
+
+}
+
+func AddAssistantMessage(ctx *gin.Context) {
+	userID := ctx.GetString("userID")
+	var input struct {
+		ChatID           string `json:"chat_id"`
+		AssistantMessage string `json:"assistant_message"`
+	}
+	if err := ctx.ShouldBindJSON(&input); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	response := utils.SaveDB(userID, input.ChatID, "assistant", input.AssistantMessage, "assistant")
+	if response != "success" {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": response})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"success": true, "data": gin.H{"chat_id": input.ChatID}})
 }
