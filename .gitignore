@@ -1,0 +1,48 @@
+# ============================
+#.gitignore
+# ============================
+# Python 通用忽略规则
+# ============================
+**/__pycache__/
+*.py[cod]
+*.egg-info/
+*.log
+*.swp
+*.bak
+
+# ============================
+# 开发环境/IDE 文件
+# ============================
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# ============================
+# 项目特定忽略规则
+# ============================
+# FastAPI 相关
+nohup.out
+*.env
+.env.local
+.env.*.local
+*.venv
+
+# 数据库/缓存文件
+*.db
+*.sqlite3
+*.dump
+redis*.rdb
+
+# 上传/生成的文件
+/app/KnowledgeBase/files/*
+/app/KnowledgeBase/vectors/*
+/uploads/**
+**/migrations/
+
+# ============================
+# 测试/覆盖率报告
+# ============================
+.coverage
+htmlcov/
+.pytest_cache/"backend/.env" 
