@@ -39,7 +39,7 @@ func AIResponse(model string, temperature float32, max_tokens int, top_p float32
 	config := openai.DefaultConfig(os.Getenv("AI_API_KEY"))
 
 	// 如果设置了自定义 AI_URL，则使用自定义端点
-	if aiURL := os.Getenv("AI_URL"); aiURL != "" {
+	if aiURL := os.Getenv("AI_BASE_URL"); aiURL != "" {
 		config.BaseURL = aiURL
 	}
 

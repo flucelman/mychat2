@@ -35,7 +35,7 @@ export default defineConfig({
     strictPort: true,
     cors: true,
     hmr: {
-      host: '192.168.14.125',
+      host: '192.168.2.148',
       port: 9001, // HMR 端口
     },
    // 检测到/api则代理到后端
