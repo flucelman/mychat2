@@ -1,6 +1,6 @@
 <template>
     <div class="body-container">
-        <div class="message-container" v-for="message in chatConfigStore.messageHistory" :key="message.id">
+        <div class="message-container" v-for="message in chatConfigStore.baseMessageHistory" :key="message.id">
             <div class="message-item" :class="message.role">
                 <div class="message-content">{{ message.content }}</div>
             </div>

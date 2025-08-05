@@ -34,10 +34,12 @@ export default defineConfig({
     port: 9000, // 自定义端口
     strictPort: true,
     cors: true,
-    hmr: {
-      host: '192.168.2.148',
-      port: 9001, // HMR 端口
-    },
+    // 临时测试：完全禁用HMR
+    // hmr: false,
+    // hmr: {
+    //   port: 9001,
+    //   host: '127.0.0.1'
+    // },
    // 检测到/api则代理到后端
     proxy: {
      '/api': {
