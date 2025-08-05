@@ -23,7 +23,7 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
     })
     // 基础消息历史（不包含system消息）
     const baseMessageHistory = reactive([])
-    
+
     // 使用计算属性，自动包含system消息
     const sendMessageHistory = computed(() => [
         {
@@ -35,7 +35,7 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
     const userMessage = ref('')
     const assistantMessage = ref('')
     const fileUrl = ref([])
-    
+
     /*
     发送用户消息
     {
@@ -49,12 +49,68 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
         "file_url": fileUrl
     }
     */
-    const sendUserMessage = () => {
+    // const sendUserMessage = () => {
+    //     if (userMessage.value === '') {
+    //         ElMessage.error(t('message.input_placeholder'))
+    //         return
+    //     }
+
+    //     // 保存用户消息的值，避免被清空
+    //     const currentUserMessage = userMessage.value
+    //     // 创建用户消息的副本并推入历史记录
+    //     baseMessageHistory.push({
+    //         role: 'user',
+    //         content: currentUserMessage  // 使用保存的值
+    //     })
+
+
+    //     // 创建要发送的消息对象
+    //     const messageToSend = {
+    //         chat_id: chatId.value,
+    //         AI_config: AIConfig,
+    //         message_history: sendMessageHistory.value,  // 使用.value获取计算属性的值
+    //         file_url: fileUrl.value
+    //     }
+
+
+    //     // 清空输入框
+    //     userMessage.value = ''
+
+    //     // 发送用户消息
+    //     http.post(API.backend_url + '/api/chat/add_user_message', messageToSend).then(res => {
+    //         // 先打印响应数据，看看实际结构
+    //         console.log("完整响应数据:", res)
+    //         console.log("res.data:", res.data)
+
+    //         // 根据实际数据结构调整
+    //         let chat_id, AI_response
+
+    //         chat_id = res.data.data.chat_id
+    //         AI_response = res.data.data.AI_response
+
+    //         // 保存助手消息
+    //         chatId.value = chat_id
+    //         assistantMessage.value = AI_response
+
+    //         // 创建助手消息的副本并推入历史记录
+    //         baseMessageHistory.push({
+    //             role: 'assistant',
+    //             content: AI_response
+    //         })
+
+    //     }).catch(err => {
+    //         console.log("AI_response error: ", err)
+    //         ElMessage.error(t('message.AI_response_error'))
+    //     })
+    //     console.log("messageHistory: ", sendMessageHistory)
+    // }
+
+    const sendUserMessage = async () => {
         if (userMessage.value === '') {
             ElMessage.error(t('message.input_placeholder'))
             return
         }
-        
+
         // 保存用户消息的值，避免被清空
         const currentUserMessage = userMessage.value
         // 创建用户消息的副本并推入历史记录
@@ -62,8 +118,8 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
             role: 'user',
             content: currentUserMessage  // 使用保存的值
         })
-                
-        
+
+
         // 创建要发送的消息对象
         const messageToSend = {
             chat_id: chatId.value,
@@ -71,40 +127,65 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
             message_history: sendMessageHistory.value,  // 使用.value获取计算属性的值
             file_url: fileUrl.value
         }
-        
 
-        // 清空输入框
+
+        // 清空输入框和之前的AI响应
         userMessage.value = ''
-        
+        assistantMessage.value = ''
+
         // 发送用户消息
-        http.post(API.backend_url + '/api/chat/add_user_message', messageToSend).then(res => {
-            // 先打印响应数据，看看实际结构
-            console.log("完整响应数据:", res)
-            console.log("res.data:", res.data)
-            
-            // 根据实际数据结构调整
-            let chat_id, AI_response
-            
-            chat_id = res.data.data.chat_id
-            AI_response = res.data.data.AI_response
-            
-            // 保存助手消息
-            chatId.value = chat_id
-            assistantMessage.value = AI_response
-            
-            // 创建助手消息的副本并推入历史记录
-            baseMessageHistory.push({
-                role: 'assistant',
-                content: AI_response
-            })
-            
-        }).catch(err => {
-            console.log("AI_response error: ", err)
-            ElMessage.error(t('message.AI_response_error'))
-        })
-        console.log("messageHistory: ", sendMessageHistory)
+        const response = await http.post(API.backend_url + '/api/chat/add_user_message', messageToSend)
+        if (!response.ok) {
+            throw new Error('请求失败');
+        }
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let aiResponse = '';
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value);
+            const lines = chunk.split('\n');
+
+            for (const line of lines) {
+                if (line.startsWith('event:start')) {
+                    console.log("开始接收AI响应")
+                }
+                else if (line.startsWith('data: ')) {
+                    try {
+                        const data = JSON.parse(line.slice(6));
+
+                        if (data.chat_id) {
+                            chatId.value = data.chat_id;
+                        }
+
+                        if (data.content) {
+                            aiResponse += data.content;
+                            // 实时更新UI显示AI响应
+                            assistantMessage.value += data.content;
+                            console.log("assistantMessage: ", assistantMessage.value)
+                        }
+
+                        if (data.error) {
+                            console.error('AI响应错误:', data.error);
+                            break;
+                        }
+                    } catch (e) {
+                        console.error('AI响应错误:', e);
+                    }
+                } else if (line.startsWith('event:end')) {
+                    console.log('AI响应完成');
+                    // 将完整的AI响应添加到历史记录
+                    baseMessageHistory.push({
+                        role: 'assistant',
+                        content: aiResponse
+                    });
+                    break;
+                }
+            }
+        }
     }
-    
     return {
         showDrawer,
         openEyes,
