@@ -106,6 +106,9 @@ func AIStreamResponse(ctx context.Context, answerCh chan<- string, model string,
 		if !ok {
 			continue // 跳过 content 不是字符串的消息
 		}
+		if content == "" {
+			continue // 跳过空内容的消息
+		}
 
 		var openaiRole string
 		switch role {
@@ -150,7 +153,6 @@ func AIStreamResponse(ctx context.Context, answerCh chan<- string, model string,
 		select {
 		case <-ctx.Done(): // 用户手动取消或超时
 			fmt.Println("收到取消信号，停止AI响应")
-			stream.Close()
 			if response.Usage != nil {
 				fmt.Printf("Usage: PromptTokens=%d, CompletionTokens=%d, TotalTokens=%d\n",
 					response.Usage.PromptTokens,
@@ -159,6 +161,7 @@ func AIStreamResponse(ctx context.Context, answerCh chan<- string, model string,
 			} else {
 				fmt.Println("Usage: nil", response)
 			}
+			stream.Close()
 			close(answerCh)
 			return
 		default:
@@ -174,7 +177,6 @@ func AIStreamResponse(ctx context.Context, answerCh chan<- string, model string,
 				close(answerCh)
 				return
 			}
-
 			if response.Usage != nil {
 				fmt.Printf("Usage: PromptTokens=%d, CompletionTokens=%d, TotalTokens=%d\n",
 					response.Usage.PromptTokens,

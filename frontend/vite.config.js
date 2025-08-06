@@ -36,10 +36,10 @@ export default defineConfig({
     cors: true,
     // 临时测试：完全禁用HMR
     // hmr: false,
-    // hmr: {
-    //   port: 9001,
-    //   host: '127.0.0.1'
-    // },
+    hmr: {
+      port: 9001,
+      host: '127.0.0.1'
+    },
    // 检测到/api则代理到后端
     proxy: {
      '/api': {

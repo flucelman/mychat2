@@ -206,7 +206,7 @@ func AddUserMessage(ctx *gin.Context) {
 			}
 			// 发送内容片段
 			fullResponse += content
-			ctx.SSEvent("data", gin.H{"content": content})
+			ctx.SSEvent("content", gin.H{"content": content})
 			ctx.Writer.Flush()
 
 		case <-ctx.Request.Context().Done():

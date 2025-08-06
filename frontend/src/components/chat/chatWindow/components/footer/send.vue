@@ -1,11 +1,16 @@
 <template>
-    <div class="send-container" @click="handleMessage">
-        <sendIcon class="send-icon"/>
+    <div class="send-container" @click="handleMessage"
+        :class="{ 'container-has-user-message': chatConfigStore.userMessage.trim().length > 0 || chatConfigStore.isReceiving == true }">
+        <upIcon v-if="chatConfigStore.isReceiving == false" class="send-icon"
+            :class="{ 'send-icon-has-user-message': chatConfigStore.userMessage.trim().length > 0 }" />
+        <squareIcon v-else style="width: 16px; height: 16px;"
+            :class="{ 'send-icon-has-user-message': chatConfigStore.userMessage.trim().length > 0 }" />
     </div>
 </template>
 
 <script setup>
-import sendIcon from '@/assets/icons/上.svg'
+import upIcon from '@/assets/icons/上.svg'
+import squareIcon from '@/assets/icons/正方形.svg'
 import { useChatConfigStore } from '@/stores/chat_config'
 const chatConfigStore = useChatConfigStore()
 const handleMessage = () => {
@@ -14,7 +19,7 @@ const handleMessage = () => {
 </script>
 
 <style scoped>
-.send-container{
+.send-container {
     width: 32px;
     height: 32px;
     background-color: #cfcfcf;
@@ -25,12 +30,22 @@ const handleMessage = () => {
     cursor: pointer;
     transition: transform 0.2s ease;
 }
-.send-container:hover{
+
+.send-container:hover {
     transform: scale(1.1);
 }
-.send-icon{
+
+.send-icon {
     width: 25px;
     height: 25px;
     color: #696969;
+}
+
+.container-has-user-message {
+    background-color: #409EFF;
+}
+
+.send-icon-has-user-message {
+    color: #ffffff;
 }
 </style>

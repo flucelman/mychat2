@@ -5,6 +5,9 @@
                 <div class="message-content">{{ message.content }}</div>
             </div>
         </div>
+        <div v-if="chatConfigStore.isReceiving == true">
+            <div class="message-content">{{ chatConfigStore.instantAssistantMessage }}</div>
+        </div>
     </div>
 </template>
 
