@@ -1,19 +1,7 @@
 <template>
     <div class="drawer-body">
-        <div class="drawer-body-item">
-            <div>第1条记录</div>
-            <ThreePointsIcon class="three-points-icon" />
-        </div>
-        <div class="drawer-body-item">
-            <div>第2条记录</div>
-            <ThreePointsIcon class="three-points-icon" />
-        </div>
-        <div class="drawer-body-item">
-            <div>第3条记录</div>
-            <ThreePointsIcon class="three-points-icon" />
-        </div>
-        <div class="drawer-body-item">
-            <div>第4条记录</div>
+        <div class="drawer-body-item" v-for="item in chatConfigStore.chatHistory" :key="item.id">
+            <div>{{ item.title }}</div>
             <ThreePointsIcon class="three-points-icon" />
         </div>
         
@@ -22,6 +10,8 @@
 
 <script setup>
 import ThreePointsIcon from '@/assets/icons/三个点.svg'
+import { useChatConfigStore } from '@/stores/chat_config'
+const chatConfigStore = useChatConfigStore()
 </script>
 
 <style scoped>

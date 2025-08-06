@@ -44,7 +44,7 @@ func VerifyToken(tokenString string) (string, error) {
 	if len(tokenString) > 7 && tokenString[:7] == "Bearer " {
 		tokenString = tokenString[7:]
 	}
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("invalid token")
 		}
@@ -57,6 +57,16 @@ func VerifyToken(tokenString string) (string, error) {
 	if !ok || !token.Valid {
 		return "", errors.New("invalid token")
 	}
+
+	// 检查token是否过期
+	exp, ok := claims["exp"].(float64)
+	if !ok {
+		return "", errors.New("invalid token: missing expiration")
+	}
+	if time.Now().Unix() > int64(exp) {
+		return "", errors.New("token expired")
+	}
+
 	userID, ok := claims["sub"].(string)
 	if !ok {
 		return "", errors.New("invalid token")

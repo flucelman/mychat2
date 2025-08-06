@@ -45,6 +45,7 @@ export const http = {
         const response = await httpFetch(url, {
             method: 'GET',
             headers: {
+                'Content-Type': 'application/json',
                 'Authorization': globalSettingStore.userToken,
                 ...headers
             },

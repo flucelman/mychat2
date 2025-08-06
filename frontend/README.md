@@ -1,1 +1,1 @@
-需要修改src-tauri\tauri.conf.json和vite.config.js里面的ip，对应到自己电脑主机的ipv4
+需要修改src\config\api.js里面的后端ip，对应到自己电脑主机的ipv4

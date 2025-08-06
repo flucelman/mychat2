@@ -37,7 +37,7 @@ func GetChatHistory(ctx *gin.Context) {
 			UpdatedAt: chat.UpdatedAt,
 		})
 	}
-	ctx.JSON(http.StatusOK, chatHistoryResponse)
+	ctx.JSON(http.StatusOK, gin.H{"data": chatHistoryResponse})
 }
 
 /*
@@ -116,10 +116,10 @@ func AddUserMessage(ctx *gin.Context) {
 			ChatID: input.ChatID,
 			UserID: userID,
 			Title: func() string {
-				if len(input.MessageHistory[0]["content"].(string)) <= 10 {
-					return input.MessageHistory[0]["content"].(string)
+				if len(input.MessageHistory[1]["content"].(string)) <= 10 {
+					return input.MessageHistory[1]["content"].(string)
 				}
-				return input.MessageHistory[0]["content"].(string)[:10] + "..."
+				return input.MessageHistory[1]["content"].(string)[:30] + "..."
 			}(),
 		}
 		if err := global.DB.Create(&chat).Error; err != nil {
@@ -181,7 +181,7 @@ func AddUserMessage(ctx *gin.Context) {
 	}
 
 	// 7. 创建通道和上下文
-	answerCh := make(chan string, 50)
+	answerCh := make(chan string)
 	answerCtx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -205,13 +205,19 @@ func AddUserMessage(ctx *gin.Context) {
 				return
 			}
 			// 发送内容片段
-			fullResponse += content
 			ctx.SSEvent("content", gin.H{"content": content})
+			fullResponse += content
 			ctx.Writer.Flush()
 
 		case <-ctx.Request.Context().Done():
 			// 客户端断开连接
 			fmt.Println("客户端断开连接，停止AI响应")
+			saveResponse := utils.SaveDB(userID, input.ChatID, "assistant", fullResponse, input.AIConfig["model"].(string))
+			if saveResponse != "success" {
+				ctx.SSEvent("error", gin.H{"error": saveResponse})
+			} else {
+				ctx.SSEvent("end", gin.H{"message": "AI响应完成"})
+			}
 			cancel()
 			return
 		}

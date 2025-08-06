@@ -23,6 +23,7 @@ func SetupRouter() *gin.Engine {
 	{
 		auth.POST("/register", controller.Register)
 		auth.POST("/login", controller.Login)
+		auth.POST("/checkToken", controller.CheckToken)
 	}
 
 	api := r.Group("/api")
@@ -31,9 +32,9 @@ func SetupRouter() *gin.Engine {
 	{
 		chat := api.Group("/chat")
 		{
-			chat.POST("/history", controller.GetChatHistory)
-			chat.POST("/message/:chat_id", controller.GetChatMessage)
-			chat.POST("/add_user_message", controller.AddUserMessage)
+			chat.GET("/getChatHistory", controller.GetChatHistory)
+			chat.POST("/message/:chatId", controller.GetChatMessage)
+			chat.POST("/addUserMessage", controller.AddUserMessage)
 		}
 	}
 

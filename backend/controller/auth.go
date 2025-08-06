@@ -76,3 +76,17 @@ func Login(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, gin.H{"success": true, "message": "Login successfully", "token": token})
 }
+
+func CheckToken(ctx *gin.Context) {
+	token := ctx.GetHeader("Authorization")
+	if token == "" {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"success": false, "message": "Token is required"})
+		return
+	}
+	userID, err := utils.VerifyToken(token)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"success": false, "message": "Invalid token"})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"success": true, "message": "Token is valid", "userID": userID})
+}

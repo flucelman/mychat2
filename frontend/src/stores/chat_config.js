@@ -13,12 +13,13 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
     // 是否展示lang、theme设置
     const openEyes = ref(false)
     // ================ AIChat ================
+    const chatHistory = ref([])
     const chatId = ref('')
     const systemPrompt = ref('you are a helpful assistant')
     const AIConfig = reactive({
         model: 'gpt-4o-mini',
         temperature: 0.5,
-        max_tokens: 1000,
+        max_tokens: 4096,
         top_p: 1,
         frequency_penalty: 0,
     })
@@ -37,13 +38,21 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
     const instantAssistantMessage = ref('')
     const fileUrl = ref([])
     const isReceiving = ref(false)
+    
+    // 添加 AbortController 来管理请求取消
+    let currentAbortController = null
 
+    // 发送消息
     const sendUserMessage = async () => {
         if (userMessage.value.trim() === '') {
             ElMessage.error(t('message.input_placeholder'))
             return
         }
         isReceiving.value = true
+        
+        // 创建新的 AbortController
+        currentAbortController = new AbortController()
+        
         // 保存用户消息的值，避免被清空
         const currentUserMessage = userMessage.value
         // 创建用户消息的副本并推入历史记录
@@ -70,14 +79,15 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
             // 获取全局设置store来获取token
             const globalSettingStore = useGlobalSettingStore()
             
-            // 直接使用httpFetch发送请求，不使用http.post以避免响应体被提前消耗
-            const response = await httpFetch(API.backend_url + '/api/chat/add_user_message', {
+            // 直接使用httpFetch发送请求，添加 AbortController 的 signal
+            const response = await httpFetch(API.backend_url + '/api/chat/addUserMessage', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': globalSettingStore.userToken,
                 },
-                body: JSON.stringify(messageToSend)
+                body: JSON.stringify(messageToSend),
+                signal: currentAbortController.signal  // 添加取消信号
             })
 
             if (!response.ok) {
@@ -90,6 +100,13 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
             console.log("开始读取流式数据")
 
             while (true) {
+                // 检查是否已被取消
+                if (currentAbortController.signal.aborted) {
+                    console.log("连接已被取消")
+                    reader.cancel()
+                    break
+                }
+                
                 const { done, value } = await reader.read()
                 if (done) {
                     console.log("流式数据读取完成")
@@ -132,10 +149,49 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
                 }
             }
         } catch (error) {
-            console.error("发送消息时出错:", error)
-            ElMessage.error(t('message.AI_response_error'))
+            // 检查是否是因为取消导致的错误
+            if (error.name === 'AbortError') {
+                console.log("请求已被用户取消")
+                ElMessage.info(t('message.request_cancelled'))
+            } else {
+                console.error("发送消息时出错:", error)
+                ElMessage.error(t('message.AI_response_error'))
+            }
+        } finally {
+            isReceiving.value = false
+            currentAbortController = null
         }
     }
+
+    // 取消连接
+    const cancelConnection = () => {
+        console.log("用户取消连接")
+        
+        // 如果有正在进行的请求，取消它
+        if (currentAbortController && !currentAbortController.signal.aborted) {
+            currentAbortController.abort()
+            console.log("已发送取消信号")
+        }
+        
+        // 重置状态
+        isReceiving.value = false
+        baseMessageHistory.push({
+            role: 'assistant',
+            content: instantAssistantMessage.value
+        })
+        instantAssistantMessage.value = ''
+        
+        // 清理 AbortController
+        currentAbortController = null
+    }
+
+    // 获取聊天历史
+    const getChatHistory = async () => {
+        const response = await http.get(API.backend_url + '/api/chat/getChatHistory')
+        chatHistory.value = response.data.data
+        console.log("chatHistory.value", chatHistory.value)
+    }
+
     return {
         showDrawer,
         openEyes,
@@ -145,7 +201,10 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
         instantAssistantMessage,
         fileUrl,
         baseMessageHistory,
-        isReceiving
+        isReceiving,
+        cancelConnection,
+        getChatHistory,
+        chatHistory
     }
 }, {
     persist: {

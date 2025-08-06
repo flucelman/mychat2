@@ -1,18 +1,21 @@
 <template>
     <div class="drawer-container">
-        <Header class="drawer-header"/>
-        <Body class="drawer-body"/>
-        <Footer class="drawer-footer"/>
+        <Header1 class="drawer-header"/>
+        <Body1 class="drawer-body"/>
+        <Footer1 class="drawer-footer"/>
     </div>
 </template>
 
 <script setup>
+import { onMounted } from 'vue'
 import { useChatConfigStore } from '@/stores/chat_config'
-import Header from './components/header.vue'
-import Body from './components/body.vue'
-import Footer from './components/footer.vue'
+import Header1 from './components/header.vue'
+import Body1 from './components/body.vue'
+import Footer1 from './components/footer.vue'
 const chatConfigStore = useChatConfigStore()
-
+onMounted(() => {
+    chatConfigStore.getChatHistory()
+})
 </script>
 
 <style scoped>

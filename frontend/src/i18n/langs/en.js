@@ -39,6 +39,8 @@ export default {
         usernamePlaceholder: 'Please enter username',
         emailPlaceholder: 'Please enter email',
         passwordPlaceholder: 'Please enter password (at least 8 characters)',
-        confirmPasswordPlaceholder: 'Please confirm password'
+        confirmPasswordPlaceholder: 'Please confirm password',
+        request_cancelled: 'Request cancelled',
+        connection_cancelled: 'Connection cancelled'
     }
 }

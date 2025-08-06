@@ -12,12 +12,14 @@ import { watch, onMounted } from 'vue'
 import { useGlobalSettingStore } from '@/stores/global_setting'
 import Auth from '@/views/auth.vue'
 
+
 const globalSettingStore = useGlobalSettingStore()
 
 // 应用主题到HTML元素
 const applyTheme = (theme) => {
   document.documentElement.setAttribute('theme', theme)
 }
+
 
 // 判断移动端和pc端
 const checkIsMobile = () => {
@@ -28,6 +30,7 @@ const checkIsMobile = () => {
 onMounted(() => {
   applyTheme(globalSettingStore.theme)
   checkIsMobile()
+  globalSettingStore.checkToken()
 })
 
 // 监听主题变化

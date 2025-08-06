@@ -39,6 +39,8 @@ export default {
         usernamePlaceholder: '请输入用户名',
         emailPlaceholder: '请输入邮箱',
         passwordPlaceholder: '请输入密码(至少8位)',
-        confirmPasswordPlaceholder: '请再次输入密码'
+        confirmPasswordPlaceholder: '请再次输入密码',
+        request_cancelled: '请求已取消',
+        connection_cancelled: '连接已取消',
     }
 }
