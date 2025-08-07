@@ -40,7 +40,7 @@ const handleResponse = async (response) => {
 
 // 封装的 HTTP 请求方法
 export const http = {
-    async get(url, headers = {}, options = {}) {
+    async get(url, headers = {}, params = {}, options = {}) {
         const globalSettingStore = getGlobalSettingStore();
         const response = await httpFetch(url, {
             method: 'GET',
@@ -49,6 +49,7 @@ export const http = {
                 'Authorization': globalSettingStore.userToken,
                 ...headers
             },
+            params: params,
             ...options
         });
         return handleResponse(response);

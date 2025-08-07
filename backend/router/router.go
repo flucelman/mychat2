@@ -14,8 +14,8 @@ func SetupRouter() *gin.Engine {
 	// 配置跨域
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
-		AllowMethods:     []string{"GET", "POST", "OPTIONS"},
-		AllowHeaders:     []string{"Content-Type", "Authorization"},
+		AllowMethods:     []string{"*"},
+		AllowHeaders:     []string{"*"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
@@ -33,8 +33,10 @@ func SetupRouter() *gin.Engine {
 		chat := api.Group("/chat")
 		{
 			chat.GET("/getChatHistory", controller.GetChatHistory)
-			chat.POST("/message/:chatId", controller.GetChatMessage)
-			chat.POST("/addUserMessage", controller.AddUserMessage)
+			chat.GET("/getChatMessage/:chat_id", controller.GetChatMessage)
+			chat.POST("/addChatMessage", controller.AddChatMessage)
+			chat.DELETE("/deleteAllHistory", controller.DeleteAllHistory)
+			chat.DELETE("/deleteSingleHistory/:chat_id", controller.DeleteSingleHistory)
 		}
 	}
 

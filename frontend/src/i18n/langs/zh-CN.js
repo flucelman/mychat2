@@ -42,5 +42,10 @@ export default {
         confirmPasswordPlaceholder: '请再次输入密码',
         request_cancelled: '请求已取消',
         connection_cancelled: '连接已取消',
+        deleteAllHistory: '确定要删除所有聊天记录吗？',
+        confirmTitle: '提示',
+        confirm: '确定',
+        cancel: '取消',
+        newChatSuccess: '新建聊天',
     }
 }

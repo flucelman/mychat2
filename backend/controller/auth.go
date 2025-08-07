@@ -83,10 +83,10 @@ func CheckToken(ctx *gin.Context) {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"success": false, "message": "Token is required"})
 		return
 	}
-	userID, err := utils.VerifyToken(token)
+	_, err := utils.VerifyToken(token)
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"success": false, "message": "Invalid token"})
 		return
 	}
-	ctx.JSON(http.StatusOK, gin.H{"success": true, "message": "Token is valid", "userID": userID})
+	ctx.JSON(http.StatusOK, gin.H{"success": true, "message": "Token is valid"})
 }

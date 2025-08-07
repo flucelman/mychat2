@@ -2,10 +2,12 @@
     <div class="body-container">
         <div class="message-container" v-for="message in chatConfigStore.baseMessageHistory" :key="message.id">
             <div class="message-item" :class="message.role">
+                <div class="message-model" :class="message.role">{{ message.model }}</div>
                 <div class="message-content">{{ message.content }}</div>
             </div>
         </div>
-        <div v-if="chatConfigStore.isReceiving == true">
+        <div v-if="chatConfigStore.isReceiving == true" class="message-item assistant">
+            <div class="message-model assistant">{{ chatConfigStore.AIConfig.model }}</div>
             <div class="message-content">{{ chatConfigStore.instantAssistantMessage }}</div>
         </div>
     </div>
@@ -40,6 +42,17 @@ const chatConfigStore = useChatConfigStore()
 }
 .message-item.assistant {
     align-self: flex-start;
+}
+.message-model {
+    font-size: 14px;
+    color: var(--secondary-text);
+    padding-left: 10px;
+}
+.message-model.user {
+    display: none;
+}
+.message-model.assistant {
+    color: var(--secondary-text);
 }
 .message-content {
     padding: 10px;

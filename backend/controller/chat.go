@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -20,15 +21,19 @@ import (
 func GetChatHistory(ctx *gin.Context) {
 	userID := ctx.GetString("userID")
 	chatHistory := []models.ChatHistory{}
-	if err := global.DB.Where("user_id = ?", userID).Find(&chatHistory).Error; err != nil {
+
+	// 在查询时直接按 updated_at 降序排列（最新的在前）
+	if err := global.DB.Where("user_id = ?", userID).Order("updated_at desc").Find(&chatHistory).Error; err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
 	type ChatHistoryResponse struct {
 		ChatID    string    `json:"chat_id"`
 		Title     string    `json:"title"`
 		UpdatedAt time.Time `json:"updated_at"`
 	}
+
 	chatHistoryResponse := []ChatHistoryResponse{}
 	for _, chat := range chatHistory {
 		chatHistoryResponse = append(chatHistoryResponse, ChatHistoryResponse{
@@ -37,6 +42,7 @@ func GetChatHistory(ctx *gin.Context) {
 			UpdatedAt: chat.UpdatedAt,
 		})
 	}
+
 	ctx.JSON(http.StatusOK, gin.H{"data": chatHistoryResponse})
 }
 
@@ -55,17 +61,28 @@ func GetChatHistory(ctx *gin.Context) {
 func GetChatMessage(ctx *gin.Context) {
 	userID := ctx.GetString("userID")
 	chatID := ctx.Param("chat_id")
-	type MessageRequest struct {
-		Page     int `json:"page"`
-		PageSize int `json:"page_size"`
+
+	// 从查询参数获取分页信息，设置默认值
+	page := 1
+	pageSize := 20
+
+	if pageStr := ctx.Query("page"); pageStr != "" {
+		if p, err := strconv.Atoi(pageStr); err == nil && p > 0 {
+			page = p
+		}
 	}
-	messageRequest := MessageRequest{}
-	if err := ctx.ShouldBindJSON(&messageRequest); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+
+	if pageSizeStr := ctx.Query("page_size"); pageSizeStr != "" {
+		if ps, err := strconv.Atoi(pageSizeStr); err == nil && ps > 0 {
+			pageSize = ps
+		}
 	}
 	message := []models.Message{}
-	if err := global.DB.Where("user_id = ?", userID).Where("chat_id = ?", chatID).Offset((messageRequest.Page - 1) * messageRequest.PageSize).Limit(messageRequest.PageSize).Find(&message).Error; err != nil {
+	if err := global.DB.Where("user_id = ?", userID).Where("chat_id = ?", chatID).
+		Order("created_at ASC"). // 按创建时间升序排列（最早的在前）
+		Offset((page - 1) * pageSize).
+		Limit(pageSize).
+		Find(&message).Error; err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -95,7 +112,7 @@ func GetChatMessage(ctx *gin.Context) {
 如果是空聊天记录，则创建新的聊天记录
 如果非空，则添加对话信息
 */
-func AddUserMessage(ctx *gin.Context) {
+func AddChatMessage(ctx *gin.Context) {
 	userID := ctx.GetString("userID")
 	var input struct {
 		ChatID         string           `json:"chat_id"`
@@ -116,10 +133,11 @@ func AddUserMessage(ctx *gin.Context) {
 			ChatID: input.ChatID,
 			UserID: userID,
 			Title: func() string {
-				if len(input.MessageHistory[1]["content"].(string)) <= 10 {
-					return input.MessageHistory[1]["content"].(string)
+				content := input.MessageHistory[1]["content"].(string)
+				if len(content) <= 30 {
+					return content
 				}
-				return input.MessageHistory[1]["content"].(string)[:30] + "..."
+				return content[:30] + "..."
 			}(),
 		}
 		if err := global.DB.Create(&chat).Error; err != nil {
@@ -127,9 +145,9 @@ func AddUserMessage(ctx *gin.Context) {
 			return
 		}
 	}
-
 	// 2. 添加用户信息到数据库
-	response := utils.SaveDB(userID, input.ChatID, "user", input.MessageHistory[len(input.MessageHistory)-1]["content"].(string), input.AIConfig["model"].(string))
+	fmt.Println("用户消息ID：", input.MessageHistory[len(input.MessageHistory)-1]["message_id"].(string))
+	response := utils.SaveDB(input.MessageHistory[len(input.MessageHistory)-1]["message_id"].(string), userID, input.ChatID, "user", input.MessageHistory[len(input.MessageHistory)-1]["content"].(string), input.AIConfig["model"].(string))
 	if response != "success" {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": response})
 		return
@@ -152,7 +170,8 @@ func AddUserMessage(ctx *gin.Context) {
 	ctx.Header("Access-Control-Allow-Headers", "Cache-Control")
 
 	// 5. 发送初始响应（包含chat_id）
-	ctx.SSEvent("start", gin.H{"chat_id": input.ChatID})
+	assistantMessageID := uuid.New().String()
+	ctx.SSEvent("start", gin.H{"chat_id": input.ChatID, "assistant_message_id": assistantMessageID})
 	ctx.Writer.Flush()
 
 	// 6. 参数验证和类型转换
@@ -196,11 +215,13 @@ func AddUserMessage(ctx *gin.Context) {
 			if !ok {
 				// 通道关闭，AI响应结束
 				// 保存完整的AI响应到数据库
-				saveResponse := utils.SaveDB(userID, input.ChatID, "assistant", fullResponse, input.AIConfig["model"].(string))
+				fmt.Println("助手消息ID：", assistantMessageID)
+				saveResponse := utils.SaveDB(assistantMessageID, userID, input.ChatID, "assistant", fullResponse, input.AIConfig["model"].(string))
+
 				if saveResponse != "success" {
 					ctx.SSEvent("error", gin.H{"error": saveResponse})
 				} else {
-					ctx.SSEvent("end", gin.H{"message": "AI响应完成"})
+					ctx.SSEvent("end", gin.H{"message": "AI响应完成", "message_id": assistantMessageID})
 				}
 				return
 			}
@@ -212,11 +233,17 @@ func AddUserMessage(ctx *gin.Context) {
 		case <-ctx.Request.Context().Done():
 			// 客户端断开连接
 			fmt.Println("客户端断开连接，停止AI响应")
-			saveResponse := utils.SaveDB(userID, input.ChatID, "assistant", fullResponse, input.AIConfig["model"].(string))
+			if fullResponse == "" {
+				fmt.Println("助手消息为空，不保存到数据库")
+				cancel()
+				return
+			}
+			fmt.Println("助手消息ID：", assistantMessageID)
+			saveResponse := utils.SaveDB(assistantMessageID, userID, input.ChatID, "assistant", fullResponse, input.AIConfig["model"].(string))
 			if saveResponse != "success" {
 				ctx.SSEvent("error", gin.H{"error": saveResponse})
 			} else {
-				ctx.SSEvent("end", gin.H{"message": "AI响应完成"})
+				ctx.SSEvent("end", gin.H{"message": "AI响应完成", "message_id": assistantMessageID})
 			}
 			cancel()
 			return
@@ -224,20 +251,31 @@ func AddUserMessage(ctx *gin.Context) {
 	}
 }
 
-func AddAssistantMessage(ctx *gin.Context) {
+// 删除所有历史记录
+func DeleteAllHistory(ctx *gin.Context) {
 	userID := ctx.GetString("userID")
-	var input struct {
-		ChatID           string `json:"chat_id"`
-		AssistantMessage string `json:"assistant_message"`
-	}
-	if err := ctx.ShouldBindJSON(&input); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if err := global.DB.Where("user_id = ?", userID).Delete(&models.ChatHistory{}).Error; err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	response := utils.SaveDB(userID, input.ChatID, "assistant", input.AssistantMessage, "assistant")
-	if response != "success" {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": response})
+	if err := global.DB.Where("user_id = ?", userID).Delete(&models.Message{}).Error; err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	ctx.JSON(http.StatusOK, gin.H{"success": true, "data": gin.H{"chat_id": input.ChatID}})
+	ctx.JSON(http.StatusOK, gin.H{"success": true, "message": "所有历史记录已删除"})
+}
+
+// 删除单个聊天记录
+func DeleteSingleHistory(ctx *gin.Context) {
+	userID := ctx.GetString("userID")
+	chatID := ctx.Param("chat_id")
+	if err := global.DB.Where("user_id = ?", userID).Where("chat_id = ?", chatID).Delete(&models.ChatHistory{}).Error; err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	if err := global.DB.Where("user_id = ?", userID).Where("chat_id = ?", chatID).Delete(&models.Message{}).Error; err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"success": true, "message": "聊天记录已删除"})
 }

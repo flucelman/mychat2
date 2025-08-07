@@ -7,15 +7,15 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"time"
 
-	"github.com/google/uuid"
 	"github.com/sashabaranov/go-openai"
 )
 
 // 保存对话信息到数据库
-func SaveDB(userID, chatID, Role, Content, Model string) string {
+func SaveDB(MessageID, userID, chatID, Role, Content, Model string) string {
 	message := models.Message{
-		MessageID: uuid.New().String(),
+		MessageID: MessageID,
 		ChatID:    chatID,
 		UserID:    userID,
 		Role:      Role,
@@ -33,6 +33,10 @@ func SaveDB(userID, chatID, Role, Content, Model string) string {
 	if err := global.DB.Create(&message).Error; err != nil {
 		return err.Error()
 	}
+	chatHistory := models.ChatHistory{}
+	global.DB.Model(&models.ChatHistory{}).Where("chat_id = ?", chatID).First(&chatHistory)
+	chatHistory.UpdatedAt = time.Now()
+	global.DB.Save(&chatHistory)
 	return "success"
 }
 

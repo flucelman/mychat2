@@ -19,8 +19,13 @@ export const useGlobalSettingStore = defineStore('globalSetting', () => {
     const userToken = ref('')
     const checkToken = async () => {
         try {
-            const response = await http.post(API.backend_url + '/api/auth/checkToken')
-            if (response.data.code != 200) {
+            const response = await http.post(API.backend_url + '/api/auth/checkToken',{
+                headers: {
+                    'Authorization': userToken.value
+                }
+            })
+            if (response.data.success == false) {
+                console.log("response.data", response.data)
                 isLogin.value = false
                 userToken.value = ''
             } else {
@@ -33,13 +38,19 @@ export const useGlobalSettingStore = defineStore('globalSetting', () => {
         }
     }
 
+    // 登出
+    const logout = async () => {
+        userToken.value = ''
+        isLogin.value = false
+    }
     return {
         lang,
         theme,
         isMobile,
         isLogin,
         userToken,
-        checkToken
+        checkToken,
+        logout
     }
 }, {
     persist: {

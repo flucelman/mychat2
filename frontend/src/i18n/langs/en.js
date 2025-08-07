@@ -5,8 +5,8 @@ export default {
         dark: 'Dark',
         chatHistory: 'Chat History',
         newChat: 'New Chat',
-        settings: 'Settings Center',
-        personalCenter: 'Personal Center',
+        settings: 'Settings',
+        personalCenter: 'User',
         input_placeholder: 'Please enter content',
         deepThinking: 'Deep Thinking',
         onlineSearch: 'Online Search',
@@ -41,6 +41,11 @@ export default {
         passwordPlaceholder: 'Please enter password (at least 8 characters)',
         confirmPasswordPlaceholder: 'Please confirm password',
         request_cancelled: 'Request cancelled',
-        connection_cancelled: 'Connection cancelled'
+        connection_cancelled: 'Connection cancelled',
+        deleteAllHistory: 'Are you sure you want to delete all chat history?',
+        confirmTitle: 'Tips',
+        confirm: 'Confirm',
+        cancel: 'Cancel',
+        newChatSuccess: 'New chat',
     }
 }

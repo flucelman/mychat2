@@ -31,11 +31,13 @@ import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 import { useGlobalSettingStore } from '@/stores/global_setting'
+import { useChatConfigStore } from '@/stores/chat_config'
 import { http } from '@/utils/http/client'
 import { API } from '@/config/api'
 
 const { t } = useI18n()
 const globalSettingStore = useGlobalSettingStore()
+const chatConfigStore = useChatConfigStore()
 const email = ref('')
 const password = ref('')
 const loading = ref(false)
@@ -62,6 +64,7 @@ const login = async () => {
             // 登录成功
             globalSettingStore.isLogin = true
             globalSettingStore.userToken = data.token
+            chatConfigStore.getChatHistory()
             ElMessage.success(data.message || t('message.loginSuccess'))
         } else {
             // 登录失败，显示后端返回的具体错误信息

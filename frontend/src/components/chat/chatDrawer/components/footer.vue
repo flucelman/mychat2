@@ -1,6 +1,6 @@
 <template>
     <div class="drawer-footer">
-        <div class="drawer-footer-item new-chat">
+        <div class="drawer-footer-item new-chat" @click="chatConfigStore.newChat()">
             <NewChatIcon class="new-chat-icon" />
             {{ $t('message.newChat') }}
         </div>
@@ -8,7 +8,7 @@
             <SettingsIcon class="settings-icon" />
             {{ $t('message.settings') }}
         </div>
-        <div class="drawer-footer-item" @click="globalSettingStore.isLogin = false">
+        <div class="drawer-footer-item" @click="globalSettingStore.logout()">
             <PersonalCenterIcon class="personal-center-icon" />
             {{ $t('message.personalCenter') }}
         </div>
@@ -20,7 +20,9 @@ import NewChatIcon from '@/assets/icons/新建聊天.svg'
 import SettingsIcon from '@/assets/icons/设置.svg'
 import PersonalCenterIcon from '@/assets/icons/个人中心.svg'
 import { useGlobalSettingStore } from '@/stores/global_setting'
+import { useChatConfigStore } from '@/stores/chat_config'
 const globalSettingStore = useGlobalSettingStore()
+const chatConfigStore = useChatConfigStore()
 </script>
 
 <style scoped>
