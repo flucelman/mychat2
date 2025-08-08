@@ -49,7 +49,7 @@ import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 import { http } from '@/utils/http/client'
-import { API } from '@/config/api'
+import { API } from '@/router/api'
 import { useGlobalSettingStore } from '@/stores/global_setting'
 
 const globalSettingStore = useGlobalSettingStore()

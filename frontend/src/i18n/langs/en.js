@@ -7,6 +7,13 @@ export default {
         newChat: 'New Chat',
         settings: 'Settings',
         personalCenter: 'User',
+        model: 'Model',
+        temperature: 'Temperature',
+        maxTokens: 'Max Tokens',
+        topP: 'Top P',
+        frequencyPenalty: 'Frequency Penalty',
+        language: 'Language',
+        theme: 'Theme',
         input_placeholder: 'Please enter content',
         deepThinking: 'Deep Thinking',
         onlineSearch: 'Online Search',
@@ -47,5 +54,6 @@ export default {
         confirm: 'Confirm',
         cancel: 'Cancel',
         newChatSuccess: 'New chat',
+        delete: 'Delete',
     }
 }

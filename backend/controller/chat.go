@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"backend/config"
 	"backend/global"
 	"backend/models"
 	"backend/utils"
@@ -105,6 +106,12 @@ func GetChatMessage(ctx *gin.Context) {
 		})
 	}
 	ctx.JSON(http.StatusOK, messageResponse)
+}
+
+// 查询模型列表
+func GetModelList(ctx *gin.Context) {
+	modelList := config.AIModels
+	ctx.JSON(http.StatusOK, modelList)
 }
 
 /*
@@ -268,12 +275,18 @@ func DeleteAllHistory(ctx *gin.Context) {
 // 删除单个聊天记录
 func DeleteSingleHistory(ctx *gin.Context) {
 	userID := ctx.GetString("userID")
-	chatID := ctx.Param("chat_id")
-	if err := global.DB.Where("user_id = ?", userID).Where("chat_id = ?", chatID).Delete(&models.ChatHistory{}).Error; err != nil {
+	var input struct {
+		ChatID string `json:"chat_id"`
+	}
+	if err := ctx.ShouldBindJSON(&input); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if err := global.DB.Where("user_id = ?", userID).Where("chat_id = ?", input.ChatID).Delete(&models.ChatHistory{}).Error; err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	if err := global.DB.Where("user_id = ?", userID).Where("chat_id = ?", chatID).Delete(&models.Message{}).Error; err != nil {
+	if err := global.DB.Where("user_id = ?", userID).Where("chat_id = ?", input.ChatID).Delete(&models.Message{}).Error; err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

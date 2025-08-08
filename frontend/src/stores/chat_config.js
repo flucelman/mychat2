@@ -3,7 +3,7 @@ import { ref, reactive, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import { http, httpFetch } from '@/utils/http/client';
-import { API } from '@/config/api'
+import { API } from '@/router/api'
 import { useGlobalSettingStore } from '@/stores/global_setting'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -231,18 +231,39 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
 
     // 删除单个聊天记录
     const deleteSingleHistory = async (chat_id) => {
-        await http.delete(API.backend_url + `/api/chat/deleteSingleHistory/${chat_id}`)
-        chatHistory.value = chatHistory.value.filter(item => item.chat_id != chat_id)
-        if (chatId.value == chat_id) {
-            baseMessageHistory.splice(0, baseMessageHistory.length)
+        try {
+            console.log("准备删除:", chat_id)
+            const baseUrl = import.meta.env.DEV ? '' : API.backend_url
+            await http.post(baseUrl + '/api/chat/deleteSingleHistory', {
+                chat_id: chat_id
+            })
+            chatHistory.value = chatHistory.value.filter(item => item.chat_id != chat_id)
+            if (chatId.value == chat_id) {
+                baseMessageHistory.splice(0, baseMessageHistory.length)
+            }
+            ElMessage.success('删除成功')
+        } catch (error) {
+            console.error('删除失败:', error)
+            ElMessage.error(t('message.networkError'))
         }
     }
 
     // 新建聊天
     const newChat = async () => {
+        cancelConnection()
         chatId.value = ''
         baseMessageHistory.splice(0, baseMessageHistory.length)
         ElMessage.success(t('message.newChatSuccess'))
+    }
+
+    // 获取模型列表
+    const modelList = ref([])
+    const getModelList = async () => {
+        if (modelList.value.length > 0) {
+            return
+        }
+        const response = await http.get(API.backend_url + '/api/chat/getModelList')
+        modelList.value = response.data
     }
 
     return {
@@ -262,10 +283,12 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
         getChatMessage,
         deleteAllHistory,
         deleteSingleHistory,
-        newChat
+        newChat,
+        getModelList,
+        modelList
     }
 }, {
     persist: {
-        pick: ['showDrawer', 'openEyes']  // 只持久化 showDrawer 字段
+        pick: ['showDrawer', 'openEyes', 'AIConfig']  // 只持久化 showDrawer 字段
     }
 })

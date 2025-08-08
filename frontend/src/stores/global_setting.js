@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { http } from '@/utils/http/client'
 import { ElMessage } from 'element-plus'
-import { API } from '@/config/api'
+import { API } from '@/router/api'
 
 export const useGlobalSettingStore = defineStore('globalSetting', () => {
     // 语言

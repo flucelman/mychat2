@@ -7,6 +7,13 @@ export default {
         newChat: '新建聊天',
         settings: '设置中心',
         personalCenter: '个人中心',
+        model: '模型',
+        temperature: '温度',
+        maxTokens: '最大token',
+        topP: 'top_p',
+        frequencyPenalty: '频率惩罚',
+        language: '语言',
+        theme: '主题',
         input_placeholder: '请输入内容',
         deepThinking: '深度思考',
         onlineSearch: '联网搜索',
@@ -47,5 +54,6 @@ export default {
         confirm: '确定',
         cancel: '取消',
         newChatSuccess: '新建聊天',
+        delete: '删除',
     }
 }

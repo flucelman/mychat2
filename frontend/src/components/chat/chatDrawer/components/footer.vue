@@ -4,7 +4,7 @@
             <NewChatIcon class="new-chat-icon" />
             {{ $t('message.newChat') }}
         </div>
-        <div class="drawer-footer-item">
+        <div class="drawer-footer-item" @click="settingsDialogVisible = true">
             <SettingsIcon class="settings-icon" />
             {{ $t('message.settings') }}
         </div>
@@ -12,6 +12,10 @@
             <PersonalCenterIcon class="personal-center-icon" />
             {{ $t('message.personalCenter') }}
         </div>
+        <!-- 对话框 -->
+        <el-dialog v-model="settingsDialogVisible" :title="$t('message.settings')" width="400" align-center>
+            <Settings />
+        </el-dialog>
     </div>
 </template>
 
@@ -21,8 +25,11 @@ import SettingsIcon from '@/assets/icons/设置.svg'
 import PersonalCenterIcon from '@/assets/icons/个人中心.svg'
 import { useGlobalSettingStore } from '@/stores/global_setting'
 import { useChatConfigStore } from '@/stores/chat_config'
+import { ref } from 'vue'
+import Settings from './settings.vue'
 const globalSettingStore = useGlobalSettingStore()
 const chatConfigStore = useChatConfigStore()
+const settingsDialogVisible = ref(false)
 </script>
 
 <style scoped>
@@ -50,13 +57,18 @@ const chatConfigStore = useChatConfigStore()
     gap: 10px;
 
 }
+
 .drawer-footer-item:hover {
     background-color: var(--tertiary-background);
 }
+
 .new-chat {
     background-color: var(--tertiary-background);
 }
-.new-chat-icon, .personal-center-icon,.settings-icon {
+
+.new-chat-icon,
+.personal-center-icon,
+.settings-icon {
     width: 20px;
     height: 20px;
     color: var(--text-color);

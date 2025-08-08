@@ -11,7 +11,9 @@ import '@/assets/css/theme.scss'
 import { watch, onMounted } from 'vue'
 import { useGlobalSettingStore } from '@/stores/global_setting'
 import Auth from '@/views/auth.vue'
+import { useChatConfigStore } from '@/stores/chat_config'
 
+const chatConfigStore = useChatConfigStore()
 
 const globalSettingStore = useGlobalSettingStore()
 
@@ -31,6 +33,7 @@ onMounted(() => {
   applyTheme(globalSettingStore.theme)
   checkIsMobile()
   globalSettingStore.checkToken()
+  chatConfigStore.getModelList()
 })
 
 // 监听主题变化

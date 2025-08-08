@@ -34,9 +34,10 @@ func SetupRouter() *gin.Engine {
 		{
 			chat.GET("/getChatHistory", controller.GetChatHistory)
 			chat.GET("/getChatMessage/:chat_id", controller.GetChatMessage)
+			chat.GET("/getModelList", controller.GetModelList)
 			chat.POST("/addChatMessage", controller.AddChatMessage)
 			chat.DELETE("/deleteAllHistory", controller.DeleteAllHistory)
-			chat.DELETE("/deleteSingleHistory/:chat_id", controller.DeleteSingleHistory)
+			chat.POST("/deleteSingleHistory", controller.DeleteSingleHistory)
 		}
 	}
 

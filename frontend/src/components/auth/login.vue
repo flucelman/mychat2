@@ -33,7 +33,7 @@ import { useI18n } from 'vue-i18n'
 import { useGlobalSettingStore } from '@/stores/global_setting'
 import { useChatConfigStore } from '@/stores/chat_config'
 import { http } from '@/utils/http/client'
-import { API } from '@/config/api'
+import { API } from '@/router/api'
 
 const { t } = useI18n()
 const globalSettingStore = useGlobalSettingStore()

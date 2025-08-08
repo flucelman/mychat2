@@ -25,6 +25,7 @@ import FooterMain from './components/footer.vue'
     align-items: center;
     gap: 10px;
     overflow: hidden; /* 防止内容溢出 */
+
 }
 
 </style>
