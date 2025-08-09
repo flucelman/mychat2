@@ -32,8 +32,7 @@ const checkIsMobile = () => {
 onMounted(() => {
   applyTheme(globalSettingStore.theme)
   checkIsMobile()
-  globalSettingStore.checkToken()
-  chatConfigStore.getModelList()
+
 })
 
 // 监听主题变化

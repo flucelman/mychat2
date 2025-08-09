@@ -18,7 +18,7 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
     const chatId = ref('')
     const systemPrompt = ref('you are a helpful assistant')
     const AIConfig = reactive({
-        model: 'gpt-4o-mini',
+        model: 'ChatGPT-5',
         temperature: 0.5,
         max_tokens: 4096,
         top_p: 1,
@@ -262,8 +262,9 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
         if (modelList.value.length > 0) {
             return
         }
-        const response = await http.get(API.backend_url + '/api/chat/getModelList')
+        const response = await http.get(API.backend_url + '/api/getModelList')
         modelList.value = response.data
+        console.log(modelList.value)
     }
 
     return {

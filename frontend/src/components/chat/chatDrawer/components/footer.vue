@@ -8,13 +8,17 @@
             <SettingsIcon class="settings-icon" />
             {{ $t('message.settings') }}
         </div>
-        <div class="drawer-footer-item" @click="globalSettingStore.logout()">
+        <div class="drawer-footer-item" @click="userDialogVisible = true">
             <PersonalCenterIcon class="personal-center-icon" />
             {{ $t('message.personalCenter') }}
         </div>
         <!-- 对话框 -->
         <el-dialog v-model="settingsDialogVisible" :title="$t('message.settings')" width="400" align-center>
             <Settings />
+        </el-dialog>
+        <!-- 个人中心 -->
+        <el-dialog v-model="userDialogVisible" :title="$t('message.personalCenter')" width="400" align-center>
+            <User />
         </el-dialog>
     </div>
 </template>
@@ -27,9 +31,11 @@ import { useGlobalSettingStore } from '@/stores/global_setting'
 import { useChatConfigStore } from '@/stores/chat_config'
 import { ref } from 'vue'
 import Settings from './settings.vue'
+import User from './user.vue'
 const globalSettingStore = useGlobalSettingStore()
 const chatConfigStore = useChatConfigStore()
 const settingsDialogVisible = ref(false)
+const userDialogVisible = ref(false)
 </script>
 
 <style scoped>

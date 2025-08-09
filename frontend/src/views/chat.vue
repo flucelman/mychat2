@@ -30,6 +30,9 @@ onMounted(() => {
     }else{
         allowDrawer.value = false
     }
+    globalSettingStore.checkToken()
+  globalSettingStore.getUserInfo()
+  chatConfigStore.getModelList()
 })
 
 </script>

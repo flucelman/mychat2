@@ -19,11 +19,22 @@ func SetupRouter() *gin.Engine {
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
+
+	// 静态资源映射：使前端可通过 /assets 访问后端的 ./assets 目录
+	r.Static("/assets", "./assets")
+
+	// 公共路由：无需鉴权
+	publicChat := r.Group("/api")
+	{
+		publicChat.GET("/getModelList", controller.GetModelList)
+	}
+
 	auth := r.Group("/api/auth")
 	{
 		auth.POST("/register", controller.Register)
 		auth.POST("/login", controller.Login)
 		auth.POST("/checkToken", controller.CheckToken)
+		auth.GET("/getUserInfo", controller.GetUserInfo)
 	}
 
 	api := r.Group("/api")
@@ -34,7 +45,6 @@ func SetupRouter() *gin.Engine {
 		{
 			chat.GET("/getChatHistory", controller.GetChatHistory)
 			chat.GET("/getChatMessage/:chat_id", controller.GetChatMessage)
-			chat.GET("/getModelList", controller.GetModelList)
 			chat.POST("/addChatMessage", controller.AddChatMessage)
 			chat.DELETE("/deleteAllHistory", controller.DeleteAllHistory)
 			chat.POST("/deleteSingleHistory", controller.DeleteSingleHistory)

@@ -7,6 +7,7 @@
                 <el-select v-model="chatConfigStore.AIConfig.model" placeholder="请选择模型" style="width: 100%;">
                     <el-option v-for="model in chatConfigStore.modelList" :label="model.name" :value="model.name">
                         <div class="model-option">
+                            <img :src="API.backend_url + '/assets/icons/modelLogo/' + chatConfigStore.modelList.find(item => item.name == model.name)?.logo" class="model-icon" />
                             <span class="model-show">{{ model.name }}</span>
                             <div class="model-abilities">
                                 <div class="ability-icons">
@@ -109,6 +110,7 @@ import ChangeLangs from '@/components/reuse/change_langs.vue'
 import ChangeTheme from '@/components/reuse/change_theme.vue'
 import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
+import { API } from '@/router/api'
 
 const chatConfigStore = useChatConfigStore()
 
@@ -144,6 +146,12 @@ const getAbilityText = (ability) => {
 </script>
 
 <style scoped>
+.model-icon {
+    width: 25px;
+    height: 25px;
+    color: var(--icon-color);
+    margin-right: 10px;
+}
 .settings-container {
     width: 100%;
     padding: 20px;

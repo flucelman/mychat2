@@ -14,9 +14,16 @@
 <script setup>
 import Login from '@/components/auth/login.vue'
 import Register from '@/components/auth/register.vue'
-import { ref } from 'vue'
+import { ref,onUnmounted  } from 'vue'
+import { useGlobalSettingStore } from '@/stores/global_setting'
+const globalSettingStore = useGlobalSettingStore()
 
 const activeTab = ref('login')
+
+onUnmounted(() => {
+    globalSettingStore.checkToken()
+    globalSettingStore.getUserInfo()
+})
 
 </script>
 

@@ -212,7 +212,8 @@ func AddChatMessage(ctx *gin.Context) {
 	defer cancel()
 
 	// 8. 启动AI流式响应
-	go utils.AIStreamResponse(answerCtx, answerCh, input.AIConfig["model"].(string), float32(temperature), int(maxTokens), float32(topP), float32(frequencyPenalty), input.MessageHistory)
+	modelKey := config.GetModelKey(input.AIConfig["model"].(string))
+	go utils.AIStreamResponse(answerCtx, answerCh, modelKey, float32(temperature), int(maxTokens), float32(topP), float32(frequencyPenalty), input.MessageHistory)
 
 	// 9. 处理流式响应并通过SSE发送
 	fullResponse := ""

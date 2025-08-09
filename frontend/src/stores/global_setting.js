@@ -17,6 +17,12 @@ export const useGlobalSettingStore = defineStore('globalSetting', () => {
     // 是否登录
     const isLogin = ref(false)
     const userToken = ref('')
+    const userInfo = ref({})
+    const getUserInfo = () => {
+        http.get(API.backend_url + '/api/auth/getUserInfo').then(res => {
+          userInfo.value = res.data.data || {}
+        }).catch(() => {})
+      }
     const checkToken = async () => {
         try {
             const response = await http.post(API.backend_url + '/api/auth/checkToken',{
@@ -42,6 +48,7 @@ export const useGlobalSettingStore = defineStore('globalSetting', () => {
     const logout = async () => {
         userToken.value = ''
         isLogin.value = false
+        userInfo.value = {}
     }
     return {
         lang,
@@ -50,7 +57,9 @@ export const useGlobalSettingStore = defineStore('globalSetting', () => {
         isLogin,
         userToken,
         checkToken,
-        logout
+        logout,
+        userInfo,
+        getUserInfo
     }
 }, {
     persist: {

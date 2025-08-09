@@ -19,6 +19,12 @@ type Config struct {
 		Password string `yaml:"password"`
 		Name     string `yaml:"name"`
 	} `yaml:"database"`
+	Redis struct {
+		Host     string `yaml:"host"`
+		Port     string `yaml:"port"`
+		Password string `yaml:"password"`
+		DB       int    `yaml:"db"`
+	} `yaml:"redis"`
 }
 
 var AppConfig *Config
@@ -43,4 +49,5 @@ func InitConfig() {
 	godotenv.Load()
 	// 初始化数据库
 	InitDB()
+	InitRedis()
 }

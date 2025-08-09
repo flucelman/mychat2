@@ -9,4 +9,8 @@ database:
   password: ""  #写到了.env文件中
   name: "mychat"
 
-
+redis:
+  host: "127.0.0.1"
+  port: "6379"
+  password: "" #写到了.env文件中
+  db: 0
