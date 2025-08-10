@@ -49,6 +49,10 @@ func SetupRouter() *gin.Engine {
 			chat.DELETE("/deleteAllHistory", controller.DeleteAllHistory)
 			chat.POST("/deleteSingleHistory", controller.DeleteSingleHistory)
 		}
+		oss := api.Group("/oss")
+		{
+			oss.POST("/uploadFile", controller.UploadFile)
+		}
 	}
 
 	return r

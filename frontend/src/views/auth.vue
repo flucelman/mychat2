@@ -14,7 +14,7 @@
 <script setup>
 import Login from '@/components/auth/login.vue'
 import Register from '@/components/auth/register.vue'
-import { ref,onUnmounted  } from 'vue'
+import { ref, onUnmounted } from 'vue'
 import { useGlobalSettingStore } from '@/stores/global_setting'
 const globalSettingStore = useGlobalSettingStore()
 

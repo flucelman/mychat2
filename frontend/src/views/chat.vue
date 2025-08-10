@@ -27,12 +27,13 @@ onMounted(() => {
     // 判断是否允许抽屉
     if (globalSettingStore.isMobile) {
         allowDrawer.value = true
+        chatConfigStore.showDrawer = false
     }else{
         allowDrawer.value = false
     }
     globalSettingStore.checkToken()
-  globalSettingStore.getUserInfo()
-  chatConfigStore.getModelList()
+    globalSettingStore.getUserInfo()
+    chatConfigStore.getModelList()
 })
 
 </script>

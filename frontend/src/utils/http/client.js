@@ -25,7 +25,18 @@ export const httpFetch = async (url, options = {}) => {
 // 处理响应的辅助函数
 const handleResponse = async (response) => {
     if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        try {
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                const jsonErr = await response.json();
+                const message = (jsonErr && (jsonErr.message || jsonErr.error)) ? (jsonErr.message || jsonErr.error) : JSON.stringify(jsonErr);
+                throw new Error(message || `HTTP error! status: ${response.status}`);
+            }
+            const text = await response.text();
+            throw new Error(text || `HTTP error! status: ${response.status}`);
+        } catch (_) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
     }
     
     const contentType = response.headers.get('content-type');
@@ -57,14 +68,19 @@ export const http = {
 
     async post(url, data, headers = {}, options = {}) {
         const globalSettingStore = getGlobalSettingStore();
+        const isForm = (typeof FormData !== 'undefined') && (data instanceof FormData);
+
+        const baseHeaders = {
+            'Authorization': globalSettingStore.userToken,
+            ...headers
+        };
+        const finalHeaders = isForm ? baseHeaders : { 'Content-Type': 'application/json', ...baseHeaders };
+        const body = isForm ? data : JSON.stringify(data);
+
         const response = await httpFetch(url, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': globalSettingStore.userToken,
-                ...headers
-            },
-            body: JSON.stringify(data),
+            headers: finalHeaders,
+            body,
             ...options
         });
         return handleResponse(response);

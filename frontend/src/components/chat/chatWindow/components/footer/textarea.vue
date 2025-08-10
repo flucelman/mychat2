@@ -6,6 +6,9 @@
         class="input-textarea" 
         :placeholder="$t('message.input_placeholder')"
         rows="1"
+        @keydown.enter.exact.prevent="onEnterSend"
+        @compositionstart="isComposing = true"
+        @compositionend="isComposing = false"
     ></textarea>
 </template>
 
@@ -14,6 +17,7 @@ import { ref, nextTick, onMounted } from 'vue'
 import { useChatConfigStore } from '@/stores/chat_config'
 const chatConfigStore = useChatConfigStore()
 const textareaRef = ref(null)
+const isComposing = ref(false)
 
 // 自动调整textarea高度
 const adjustHeight = async () => {
@@ -31,6 +35,16 @@ const adjustHeight = async () => {
             textareaRef.value.style.height = maxHeight + 'px'
         }
     }
+}
+
+const onEnterSend = async (e) => {
+    if (isComposing.value) return
+    if (e.shiftKey) return
+    if (chatConfigStore.isReceiving) return
+    await chatConfigStore.sendUserMessage()
+    await nextTick()
+    adjustHeight()
+    if (textareaRef.value) textareaRef.value.focus()
 }
 
 // 组件挂载时初始化高度

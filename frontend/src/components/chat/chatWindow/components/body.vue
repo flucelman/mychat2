@@ -2,7 +2,7 @@
     <div class="body-container">
         <div class="message-container" v-for="message in chatConfigStore.baseMessageHistory" :key="message.id">
             <div class="message-item" :class="message.role">
-                <div class="message-model user" v-if="message.role == 'user'">{{ globalSettingStore.userInfo.username }}</div>
+                <div class="message-model user username" v-if="message.role == 'user'">{{ globalSettingStore.userInfo.username }}</div>
                 <div class="message-model assistant" v-if="message.role == 'assistant'">
                     <img :src="API.backend_url + '/assets/icons/modelLogo/' + chatConfigStore.modelList.find(item => item.name == message.model)?.logo" class="model-icon" />
                     <div class="model-name-text">
@@ -75,5 +75,8 @@ import { API } from '@/router/api'
 .message-content {
     padding: 10px;
     border-radius: 10px;
+}
+.username{
+    align-self: flex-end;
 }
 </style>

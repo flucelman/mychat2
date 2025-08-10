@@ -1,5 +1,10 @@
 <template>
         <div class="input-container">
+            <div v-if="chatConfigStore.isUploading" class="uploading-files-container">
+                <div v-for="i in chatConfigStore.uploadingFiles" :key="i">
+                    <showFilesPlaceholder />
+                </div>
+            </div>
             <Textarea1/>
             <div class="input-container-inner">
                 <Plugin/>
@@ -15,7 +20,11 @@
 import Plugin from './footer/plugin.vue'
 import Send from './footer/send.vue'
 import UploadFiles from './footer/uploadFiles.vue'
+import showFilesPlaceholder from './footer/showFilesPlaceholder.vue'
 import Textarea1 from './footer/textarea.vue'
+import { useChatConfigStore } from '@/stores/chat_config'
+
+const chatConfigStore = useChatConfigStore()    
 
 </script>
 
@@ -74,5 +83,10 @@ import Textarea1 from './footer/textarea.vue'
     align-items: center;
     justify-content: center;
     gap: 20px;
+}
+.uploading-files-container{
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
 }
 </style>

@@ -267,6 +267,10 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
         console.log(modelList.value)
     }
 
+    // 上传文件
+    const isUploading = ref(false)
+    const uploadingFiles = ref(0)
+
     return {
         showDrawer,
         openEyes,
@@ -286,7 +290,9 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
         deleteSingleHistory,
         newChat,
         getModelList,
-        modelList
+        modelList,
+        isUploading,
+        uploadingFiles
     }
 }, {
     persist: {

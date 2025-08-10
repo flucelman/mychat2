@@ -32,7 +32,6 @@ const checkIsMobile = () => {
 onMounted(() => {
   applyTheme(globalSettingStore.theme)
   checkIsMobile()
-
 })
 
 // 监听主题变化
