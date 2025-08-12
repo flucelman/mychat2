@@ -5,6 +5,11 @@
                     <showFilesPlaceholder />
                 </div>
             </div>
+            <div v-if="chatConfigStore.filesInfo.length > 0" class="uploading-files-container">
+                <div v-for="info in chatConfigStore.filesInfo" :key="info.file_id">
+                    <showFiles :info="info" />
+                </div>
+            </div>
             <Textarea1/>
             <div class="input-container-inner">
                 <Plugin/>
@@ -21,6 +26,7 @@ import Plugin from './footer/plugin.vue'
 import Send from './footer/send.vue'
 import UploadFiles from './footer/uploadFiles.vue'
 import showFilesPlaceholder from './footer/showFilesPlaceholder.vue'
+import showFiles from './footer/showFiles.vue'
 import Textarea1 from './footer/textarea.vue'
 import { useChatConfigStore } from '@/stores/chat_config'
 

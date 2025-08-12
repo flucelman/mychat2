@@ -55,5 +55,7 @@ export default {
         cancel: 'Cancel',
         newChatSuccess: 'New chat',
         delete: 'Delete',
+        uploadSuccess: 'files uploaded successfully',
+        uploadFailed: 'upload failed',
     }
 }

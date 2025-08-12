@@ -55,5 +55,7 @@ export default {
         cancel: '取消',
         newChatSuccess: '新建聊天',
         delete: '删除',
+        uploadSuccess: '个文件上传成功',
+        uploadFailed: '上传失败',
     }
 }

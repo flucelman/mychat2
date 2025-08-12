@@ -125,7 +125,7 @@ func AddChatMessage(ctx *gin.Context) {
 		ChatID         string           `json:"chat_id"`
 		AIConfig       map[string]any   `json:"AI_config"`
 		MessageHistory []map[string]any `json:"message_history"`
-		FileUrl        []string         `json:"file_url"`
+		FilesInfo      []map[string]any `json:"files_info"`
 	}
 	if err := ctx.ShouldBindJSON(&input); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -160,8 +160,8 @@ func AddChatMessage(ctx *gin.Context) {
 		return
 	}
 
-	// 3.检查是否有file_url
-	if len(input.FileUrl) > 0 {
+	// 3.检查是否有files_info
+	if len(input.FilesInfo) > 0 {
 		// 拿到url，进行解析
 		// 如果是文件则进行markitdown返回string，如果是图片、视频、音频则返回url
 		// 将string或者url保存到数据库

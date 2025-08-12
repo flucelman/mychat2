@@ -37,7 +37,7 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
     ])
     const userMessage = ref('')
     const instantAssistantMessage = ref('')
-    const fileUrl = ref([])
+    const filesInfo = ref([])
     const isReceiving = ref(false)
 
     // 添加 AbortController 来管理请求取消
@@ -70,7 +70,7 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
             chat_id: chatId.value,
             AI_config: AIConfig,
             message_history: sendMessageHistory.value,  // 使用.value获取计算属性的值
-            file_url: fileUrl.value
+            filesInfo: filesInfo.value
         }
 
         // 把当前聊天放到最前面
@@ -279,7 +279,7 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
         sendUserMessage,
         userMessage,
         instantAssistantMessage,
-        fileUrl,
+        filesInfo,
         baseMessageHistory,
         isReceiving,
         cancelConnection,
