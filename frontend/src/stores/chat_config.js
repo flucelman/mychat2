@@ -70,7 +70,7 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
             chat_id: chatId.value,
             AI_config: AIConfig,
             message_history: sendMessageHistory.value,  // 使用.value获取计算属性的值
-            filesInfo: filesInfo.value
+            files_info: filesInfo.value
         }
 
         // 把当前聊天放到最前面
