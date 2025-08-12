@@ -1,24 +1,26 @@
 <template>
-        <div class="input-container">
-            <div v-if="chatConfigStore.isUploading" class="uploading-files-container">
-                <div v-for="i in chatConfigStore.uploadingFiles" :key="i">
-                    <showFilesPlaceholder />
-                </div>
-            </div>
+    <div class="input-container">
+        <div class="files-container">
             <div v-if="chatConfigStore.filesInfo.length > 0" class="uploading-files-container">
                 <div v-for="info in chatConfigStore.filesInfo" :key="info.file_id">
                     <showFiles :info="info" />
                 </div>
             </div>
-            <Textarea1/>
-            <div class="input-container-inner">
-                <Plugin/>
-                <div class="input-container-inner-right">
-                    <UploadFiles/>
-                    <Send/>
+            <div v-if="chatConfigStore.isUploading" class="uploading-files-container">
+                <div v-for="i in chatConfigStore.uploadingFiles" :key="i">
+                    <showFilesPlaceholder />
                 </div>
             </div>
         </div>
+        <Textarea1 />
+        <div class="input-container-inner">
+            <Plugin />
+            <div class="input-container-inner-right">
+                <UploadFiles />
+                <Send />
+            </div>
+        </div>
+    </div>
 </template>
 
 <script setup>
@@ -30,24 +32,25 @@ import showFiles from './footer/showFiles.vue'
 import Textarea1 from './footer/textarea.vue'
 import { useChatConfigStore } from '@/stores/chat_config'
 
-const chatConfigStore = useChatConfigStore()    
+const chatConfigStore = useChatConfigStore()
 
 </script>
 
 <style scoped>
 @media screen and (max-width: 1200px) {
-    .input-container{
+    .input-container {
         width: 100%;
     }
 }
+
 @media screen and (min-width: 1200px) {
-    .input-container{
+    .input-container {
         width: 50%;
         max-width: 800px;
     }
 }
 
-.input-container{
+.input-container {
     display: flex;
     justify-content: center;
     align-items: flex-start;
@@ -60,12 +63,12 @@ const chatConfigStore = useChatConfigStore()
     transition: box-shadow 0.3s ease, transform 0.2s ease;
 }
 
-.input-container:hover{
+.input-container:hover {
     box-shadow: var(--shadow-color);
     transform: translateY(-2px);
 }
 
-.input-container:focus-within{
+.input-container:focus-within {
     box-shadow: var(--shadow-color);
     border-color: var(--border-color-hover);
     border-width: 2px;
@@ -73,26 +76,37 @@ const chatConfigStore = useChatConfigStore()
 
 
 
-.input::placeholder{
+.input::placeholder {
     color: var(#999);
     font-size: 16px;
     opacity: 0.7;
 }
-.input-container-inner{
+
+.input-container-inner {
     display: flex;
     justify-content: space-between;
     align-items: center;
     width: 100%;
 }
-.input-container-inner-right{
+
+.input-container-inner-right {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 20px;
 }
-.uploading-files-container{
+
+.files-container {
     display: flex;
     flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.uploading-files-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
     gap: 10px;
 }
 </style>

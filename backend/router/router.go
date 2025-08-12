@@ -52,6 +52,7 @@ func SetupRouter() *gin.Engine {
 		oss := api.Group("/oss")
 		{
 			oss.POST("/uploadFile", controller.UploadFile)
+			oss.POST("/deleteFile", controller.DeleteFile)
 		}
 	}
 

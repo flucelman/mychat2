@@ -18,6 +18,7 @@
   const fileInput = ref(null)
   const selectedFiles = ref([])
   
+  // 暴露内容给父组件调用
   const emit = defineEmits(['files-selected'])
   
   // 打开文件管理器

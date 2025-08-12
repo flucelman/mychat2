@@ -1,4 +1,4 @@
 export const API = {
-    backend_url: "http://192.168.2.201:8000",
+    backend_url: "http://192.168.115.125:8000",
 }
 

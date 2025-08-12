@@ -28,6 +28,7 @@ const handleUploadClick = () => {
 const onFilesSelected = async (files) => {
     if (!files || files.length === 0) return
     const formData = new FormData()
+    formData.append('chat_id', chatConfigStore.chatId)
     // 后端使用 form.File["files"], 需要逐个追加文件
     files.forEach((file) => {
         formData.append('files', file, file.name)
@@ -50,7 +51,7 @@ const onFilesSelected = async (files) => {
 
         // 成功结果写入 fileUrl（支持 string 或对象 {url|path}）
         if (successList.length > 0) {
-            chatConfigStore.filesInfo = successList
+            chatConfigStore.filesInfo.push(...successList)
             console.log(chatConfigStore.filesInfo)
             ElMessage.success(successList.length + ' ' + t('message.uploadSuccess'))
         }

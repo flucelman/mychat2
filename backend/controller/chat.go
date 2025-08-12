@@ -88,24 +88,60 @@ func GetChatMessage(ctx *gin.Context) {
 		return
 	}
 
-	type MessageResponse struct {
-		MessageID string    `json:"message_id"`
+	// 查询文件
+	file := []models.File{}
+	if err := global.DB.Where("user_id = ?", userID).Where("chat_id = ?", chatID).Find(&file).Error; err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// 定义统一的响应结构
+	type CombinedResponse struct {
+		ID        string    `json:"id"`
 		Role      string    `json:"role"`
-		Content   string    `json:"content"`
-		Model     string    `json:"model"`
+		Content   string    `json:"content,omitempty"`
+		Model     string    `json:"model,omitempty"`
+		FileURL   string    `json:"file_url,omitempty"`
+		Size      int64     `json:"size,omitempty"`
+		FileName  string    `json:"name,omitempty"`
 		CreatedAt time.Time `json:"created_at"`
 	}
-	messageResponse := []MessageResponse{}
-	for _, message := range message {
-		messageResponse = append(messageResponse, MessageResponse{
-			MessageID: message.MessageID,
-			Role:      message.Role,
-			Content:   message.Content,
-			Model:     message.Model,
-			CreatedAt: message.CreatedAt,
+
+	var combinedResponse []CombinedResponse
+
+	// 添加消息到结果中
+	for _, msg := range message {
+		combinedResponse = append(combinedResponse, CombinedResponse{
+			ID:        msg.MessageID,
+			Role:      msg.Role,
+			Content:   msg.Content,
+			Model:     msg.Model,
+			CreatedAt: msg.CreatedAt,
 		})
 	}
-	ctx.JSON(http.StatusOK, messageResponse)
+
+	// 添加文件到结果中
+	for _, f := range file {
+		combinedResponse = append(combinedResponse, CombinedResponse{
+			ID:        f.FileID,
+			Role:      "file",
+			FileURL:   f.FileURL,
+			Size:      f.FileSize,
+			FileName:  f.FileName,
+			CreatedAt: f.CreatedAt,
+		})
+	}
+
+	// 按照 CreatedAt 排序（升序）
+	for i := 0; i < len(combinedResponse)-1; i++ {
+		for j := 0; j < len(combinedResponse)-1-i; j++ {
+			if combinedResponse[j].CreatedAt.After(combinedResponse[j+1].CreatedAt) {
+				combinedResponse[j], combinedResponse[j+1] = combinedResponse[j+1], combinedResponse[j]
+			}
+		}
+	}
+
+	ctx.JSON(http.StatusOK, combinedResponse)
 }
 
 // 查询模型列表
@@ -140,11 +176,32 @@ func AddChatMessage(ctx *gin.Context) {
 			ChatID: input.ChatID,
 			UserID: userID,
 			Title: func() string {
-				content := input.MessageHistory[1]["content"].(string)
-				if len(content) <= 30 {
-					return content
+				// 安全检查：确保MessageHistory有足够的元素
+				if len(input.MessageHistory) < 2 {
+					return "新对话"
 				}
-				return content[:30] + "..."
+
+				// 优先检查最后一个消息（通常是用户消息）
+				lastIndex := len(input.MessageHistory) - 1
+				if lastMsg, ok := input.MessageHistory[lastIndex]["content"].(string); ok {
+					if len(lastMsg) <= 30 {
+						return lastMsg
+					}
+					return lastMsg[:30] + "..."
+				}
+
+				// 如果最后一个消息不是字符串，检查第二个消息
+				if len(input.MessageHistory) >= 2 {
+					if secondMsg, ok := input.MessageHistory[1]["content"].(string); ok {
+						if len(secondMsg) <= 30 {
+							return secondMsg
+						}
+						return secondMsg[:30] + "..."
+					}
+				}
+
+				// 如果都失败了，返回默认标题
+				return "新对话"
 			}(),
 		}
 		if err := global.DB.Create(&chat).Error; err != nil {
@@ -153,8 +210,29 @@ func AddChatMessage(ctx *gin.Context) {
 		}
 	}
 	// 2. 添加用户信息到数据库
-	fmt.Println("用户消息ID：", input.MessageHistory[len(input.MessageHistory)-1]["message_id"].(string))
-	response := utils.SaveDB(input.MessageHistory[len(input.MessageHistory)-1]["message_id"].(string), userID, input.ChatID, "user", input.MessageHistory[len(input.MessageHistory)-1]["content"].(string), input.AIConfig["model"].(string))
+	if len(input.MessageHistory) == 0 {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "消息历史为空"})
+		return
+	}
+	lastMessage := input.MessageHistory[len(input.MessageHistory)-1]
+	messageID, ok := lastMessage["message_id"].(string)
+	if !ok {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "无效的消息ID类型"})
+		return
+	}
+	content, ok := lastMessage["content"].(string)
+	if !ok {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "无效的消息内容类型"})
+		return
+	}
+	model, ok := input.AIConfig["model"].(string)
+	if !ok {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "无效的模型类型"})
+		return
+	}
+
+	fmt.Println("用户消息ID：", messageID)
+	response := utils.SaveDB(messageID, userID, input.ChatID, "user", content, model)
 	if response != "success" {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": response})
 		return
@@ -212,7 +290,7 @@ func AddChatMessage(ctx *gin.Context) {
 	defer cancel()
 
 	// 8. 启动AI流式响应
-	modelKey := config.GetModelKey(input.AIConfig["model"].(string))
+	modelKey := config.GetModelKey(model) // 使用之前已经验证过的model变量
 	go utils.AIStreamResponse(answerCtx, answerCh, modelKey, float32(temperature), int(maxTokens), float32(topP), float32(frequencyPenalty), input.MessageHistory)
 
 	// 9. 处理流式响应并通过SSE发送
@@ -224,7 +302,7 @@ func AddChatMessage(ctx *gin.Context) {
 				// 通道关闭，AI响应结束
 				// 保存完整的AI响应到数据库
 				fmt.Println("助手消息ID：", assistantMessageID)
-				saveResponse := utils.SaveDB(assistantMessageID, userID, input.ChatID, "assistant", fullResponse, input.AIConfig["model"].(string))
+				saveResponse := utils.SaveDB(assistantMessageID, userID, input.ChatID, "assistant", fullResponse, model)
 
 				if saveResponse != "success" {
 					ctx.SSEvent("error", gin.H{"error": saveResponse})
@@ -247,7 +325,7 @@ func AddChatMessage(ctx *gin.Context) {
 				return
 			}
 			fmt.Println("助手消息ID：", assistantMessageID)
-			saveResponse := utils.SaveDB(assistantMessageID, userID, input.ChatID, "assistant", fullResponse, input.AIConfig["model"].(string))
+			saveResponse := utils.SaveDB(assistantMessageID, userID, input.ChatID, "assistant", fullResponse, model)
 			if saveResponse != "success" {
 				ctx.SSEvent("error", gin.H{"error": saveResponse})
 			} else {

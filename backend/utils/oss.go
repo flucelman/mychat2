@@ -37,3 +37,17 @@ func UploadFile(file *multipart.FileHeader, folder string, user_id string) (stri
 	file_url := base_url + "/" + oss_key
 	return file_url, nil
 }
+
+func DeleteFile(file_url string) error {
+	bucket := os.Getenv("OSS_BUCKET")
+
+	request := &oss.DeleteObjectRequest{
+		Bucket: oss.Ptr(bucket),
+		Key:    oss.Ptr(file_url),
+	}
+	_, err := global.OSSClient.DeleteObject(context.Background(), request)
+	if err != nil {
+		return errors.New(err.Error())
+	}
+	return nil
+}

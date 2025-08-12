@@ -25,7 +25,7 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
         frequency_penalty: 0,
     })
     // 基础消息历史（不包含system消息）
-    const baseMessageHistory = reactive([])
+    const baseMessageHistory = ref([])
 
     // 使用计算属性，自动包含system消息
     const sendMessageHistory = computed(() => [
@@ -33,7 +33,7 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
             role: 'system',
             content: systemPrompt.value
         },
-        ...baseMessageHistory
+        ...baseMessageHistory.value
     ])
     const userMessage = ref('')
     const instantAssistantMessage = ref('')
@@ -45,10 +45,12 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
     const assistantMessageId = ref(null)
     // 发送消息
     const sendUserMessage = async () => {
+        console.log("baseMessageHistory",baseMessageHistory.value)
         if (userMessage.value.trim() === '') {
             ElMessage.error(t('message.input_placeholder'))
             return
         }
+
         isReceiving.value = true
 
         // 创建新的 AbortController
@@ -56,14 +58,27 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
 
         // 保存用户消息的值，避免被清空
         const currentUserMessage = userMessage.value
+
+        // 把filesInfo.value中的file_id和file_url添加到baseMessageHistory.value中
+        filesInfo.value.forEach(item => {
+            baseMessageHistory.value.push({
+                role: 'file',
+                id: item.file_id,
+                file_url: item.file_url,
+                size: item.size,
+                name: item.name
+            })
+        })
+        filesInfo.value = []
         // 创建用户消息的副本并推入历史记录
-        baseMessageHistory.push({
+        baseMessageHistory.value.push({
             role: 'user',
             content: currentUserMessage,  // 使用保存的值
             model: AIConfig.model,
             message_id: uuidv4()
         })
 
+        
         
         // 创建要发送的消息对象
         const messageToSend = {
@@ -117,7 +132,7 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
 
                 if (done) {
                     // 将完整的AI响应添加到消息历史
-                    baseMessageHistory.push({
+                    baseMessageHistory.value.push({
                         role: 'assistant',
                         content: instantAssistantMessage.value,
                         model: AIConfig.model,
@@ -176,9 +191,18 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
         // 检查是否已存在当前聊天记录
         const existingChat = chatHistory.value.find(item => item.chat_id == chatId.value)
         if (!existingChat) {
+            // 获取聊天标题
+            let title = '新对话'
+            baseMessageHistory.value.forEach(item => {
+                if(item.role == 'user'){
+                    title = item.content
+                    return
+                }
+            })
+            
             chatHistory.value.unshift({
                 chat_id: chatId.value,
-                title: baseMessageHistory[0].content,
+                title: title,
                 update_time: new Date().toISOString()
             })
         }
@@ -197,7 +221,7 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
         currentAbortController = null
 
         if (instantAssistantMessage.value != '') {
-            baseMessageHistory.push({
+            baseMessageHistory.value.push({
                 role: 'assistant',
                 content: instantAssistantMessage.value,
                 model: AIConfig.model,
@@ -219,14 +243,15 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
         chatId.value = chat_id
         const response = await http.get(API.backend_url + `/api/chat/getChatMessage/${chat_id}`)
         // 清空数组并添加新数据，而不是直接赋值
-        baseMessageHistory.splice(0, baseMessageHistory.length, ...response.data)
+        baseMessageHistory.value.splice(0, baseMessageHistory.value.length, ...response.data)
+        console.log("baseMessageHistory",baseMessageHistory)
     }
 
     // 删除所有聊天记录
     const deleteAllHistory = async () => {
         await http.delete(API.backend_url + '/api/chat/deleteAllHistory')
         chatHistory.value = []
-        baseMessageHistory.splice(0, baseMessageHistory.length)
+        baseMessageHistory.value.splice(0, baseMessageHistory.value.length)
     }
 
     // 删除单个聊天记录
@@ -239,7 +264,7 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
             })
             chatHistory.value = chatHistory.value.filter(item => item.chat_id != chat_id)
             if (chatId.value == chat_id) {
-                baseMessageHistory.splice(0, baseMessageHistory.length)
+                baseMessageHistory.value.splice(0, baseMessageHistory.value.length)
             }
             ElMessage.success('删除成功')
         } catch (error) {
@@ -252,7 +277,7 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
     const newChat = async () => {
         cancelConnection()
         chatId.value = ''
-        baseMessageHistory.splice(0, baseMessageHistory.length)
+        baseMessageHistory.value.splice(0, baseMessageHistory.value.length)
         ElMessage.success(t('message.newChatSuccess'))
     }
 
@@ -270,6 +295,15 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
     // 上传文件
     const isUploading = ref(false)
     const uploadingFiles = ref(0)
+
+    // 删除文件
+    const deleteFile = (file_id,file_url) => {
+        filesInfo.value = filesInfo.value.filter(item => item.file_id != file_id)
+        http.post(API.backend_url + `/api/oss/deleteFile`,{
+            file_id: file_id,
+            file_url: file_url
+        })
+    }
 
     return {
         showDrawer,
@@ -290,9 +324,10 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
         deleteSingleHistory,
         newChat,
         getModelList,
-        modelList,
+        modelList,  
         isUploading,
-        uploadingFiles
+        uploadingFiles,
+        deleteFile
     }
 }, {
     persist: {

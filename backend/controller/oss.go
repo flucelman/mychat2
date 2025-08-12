@@ -4,6 +4,7 @@ import (
 	"backend/global"
 	"backend/models"
 	"backend/utils"
+	"fmt"
 	"net/http"
 	"strings"
 	"sync"
@@ -19,6 +20,7 @@ func UploadFile(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"success": false, "message": err.Error()})
 		return
 	}
+	chatID := form.Value["chat_id"][0]
 	files := form.File["files"]
 
 	// 并发上传，限制同时进行的上传数为10个
@@ -56,6 +58,7 @@ func UploadFile(ctx *gin.Context) {
 			global.DB.Create(&models.File{
 				FileID:   fileID,
 				UserID:   userID,
+				ChatID:   chatID,
 				FileName: f.Filename,
 				FileSize: f.Size,
 				FileURL:  url,
@@ -65,10 +68,11 @@ func UploadFile(ctx *gin.Context) {
 				suffix = f.Filename[dot:]
 			}
 			successInfos[i] = gin.H{
-				"name":    f.Filename,
-				"suffix":  suffix,
-				"size":    f.Size,
-				"file_id": fileID,
+				"name":     f.Filename,
+				"suffix":   suffix,
+				"size":     f.Size,
+				"file_id":  fileID,
+				"file_url": url,
 			}
 		}()
 	}
@@ -107,5 +111,47 @@ func UploadFile(ctx *gin.Context) {
 			"success": filteredSuccess,
 			"failed":  filteredFailed,
 		},
+	})
+}
+
+// 删除文件（根据file_id）
+func DeleteFile(ctx *gin.Context) {
+	userID := ctx.GetString("userID")
+	var input struct {
+		FileID  string `json:"file_id"`
+		FileURL string `json:"file_url"`
+	}
+	if err := ctx.ShouldBindJSON(&input); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"success": false, "message": err.Error()})
+		return
+	}
+
+	// 根据file_id删除数据库中的文件
+	go func() {
+		if err := global.DB.Delete(&models.File{}, "file_id = ? AND user_id = ?", input.FileID, userID).Error; err != nil {
+			fmt.Println("删除数据库失败", err)
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"success": false,
+				"message": "文件删除失败",
+			})
+			return
+		}
+	}()
+
+	// 根据file_url删除oss中的文件
+	go func() {
+		if err := utils.DeleteFile(input.FileURL); err != nil {
+			fmt.Println("删除oss失败", err)
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"success": false,
+				"message": "文件删除失败",
+			})
+			return
+		}
+	}()
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "文件删除成功",
 	})
 }
