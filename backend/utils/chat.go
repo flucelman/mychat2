@@ -103,17 +103,37 @@ func AIStreamResponse(ctx context.Context, answerCh chan<- string, model string,
 
 		// 检查 content 字段
 		contentInterface, ok := msg["content"]
-		if !ok || contentInterface == nil {
-			continue // 跳过没有 content 字段或 content 为 nil 的消息
+		if role == "user" || role == "assistant" {
+			if !ok || contentInterface == nil {
+				continue // 跳过没有 content 字段或 content 为 nil 的消息
+			}
+			content, ok := contentInterface.(string)
+			if !ok {
+				continue // 跳过 content 不是字符串的消息
+			}
+			if content == "" {
+				continue // 跳过空内容的消息
+			}
 		}
-		content, ok := contentInterface.(string)
-		if !ok {
-			continue // 跳过 content 不是字符串的消息
+		// 检查是否role为file
+		if role == "file" {
+			if msg["file_type"] == "image" {
+				fmt.Println("image", msg["file_url"])
+				messages = append(messages, openai.ChatCompletionMessage{
+					Role: openai.ChatMessageRoleUser,
+					MultiContent: []openai.ChatMessagePart{
+						{
+							Type: openai.ChatMessagePartTypeImageURL,
+							ImageURL: &openai.ChatMessageImageURL{
+								URL: msg["file_url"].(string),
+							},
+						},
+					},
+				})
+			}
+			continue
 		}
-		if content == "" {
-			continue // 跳过空内容的消息
-		}
-
+		content := contentInterface.(string)
 		var openaiRole string
 		switch role {
 		case "user":

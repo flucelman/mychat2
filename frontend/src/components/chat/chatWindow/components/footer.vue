@@ -3,7 +3,7 @@
         <div class="files-container">
             <div v-if="chatConfigStore.filesInfo.length > 0" class="uploading-files-container">
                 <div v-for="info in chatConfigStore.filesInfo" :key="info.file_id">
-                    <showFiles :info="info" />
+                    <showFiles :fileInfo="info" />
                 </div>
             </div>
             <div v-if="chatConfigStore.isUploading" class="uploading-files-container">

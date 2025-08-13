@@ -97,14 +97,16 @@ func GetChatMessage(ctx *gin.Context) {
 
 	// 定义统一的响应结构
 	type CombinedResponse struct {
-		ID        string    `json:"id"`
-		Role      string    `json:"role"`
-		Content   string    `json:"content,omitempty"`
-		Model     string    `json:"model,omitempty"`
-		FileURL   string    `json:"file_url,omitempty"`
-		Size      int64     `json:"size,omitempty"`
-		FileName  string    `json:"name,omitempty"`
-		CreatedAt time.Time `json:"created_at"`
+		ID          string    `json:"id"`
+		Role        string    `json:"role"`
+		Content     string    `json:"content,omitempty"`
+		Model       string    `json:"model,omitempty"`
+		FileURL     string    `json:"file_url,omitempty"`
+		FileSize    int64     `json:"file_size,omitempty"`
+		FileName    string    `json:"file_name,omitempty"`
+		FileType    string    `json:"file_type,omitempty"`
+		FileContent string    `json:"file_content,omitempty"`
+		CreatedAt   time.Time `json:"created_at"`
 	}
 
 	var combinedResponse []CombinedResponse
@@ -123,12 +125,14 @@ func GetChatMessage(ctx *gin.Context) {
 	// 添加文件到结果中
 	for _, f := range file {
 		combinedResponse = append(combinedResponse, CombinedResponse{
-			ID:        f.FileID,
-			Role:      "file",
-			FileURL:   f.FileURL,
-			Size:      f.FileSize,
-			FileName:  f.FileName,
-			CreatedAt: f.CreatedAt,
+			ID:          f.FileID,
+			Role:        "file",
+			FileURL:     f.FileURL,
+			FileSize:    f.FileSize,
+			FileName:    f.FileName,
+			FileType:    f.FileType,
+			FileContent: f.FileContent,
+			CreatedAt:   f.CreatedAt,
 		})
 	}
 
@@ -161,17 +165,22 @@ func AddChatMessage(ctx *gin.Context) {
 		ChatID         string           `json:"chat_id"`
 		AIConfig       map[string]any   `json:"AI_config"`
 		MessageHistory []map[string]any `json:"message_history"`
-		FilesInfo      []map[string]any `json:"files_info"`
 	}
 	if err := ctx.ShouldBindJSON(&input); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	// 如果chat_id为空，则创建新的聊天记录
-	if input.ChatID == "" {
-		input.ChatID = uuid.New().String()
+	// 计算MessageHistory里面有多少个user消息
+	userCount := 0
+	for _, msg := range input.MessageHistory {
+		if msg["role"] == "user" {
+			userCount++
+		}
+	}
+	// 如果只有一个user消息，则创建新的聊天记录
+	if userCount == 1 {
 		// 1. 创建新的聊天记录
+		fmt.Println("创建新的聊天记录", input.MessageHistory)
 		chat := models.ChatHistory{
 			ChatID: input.ChatID,
 			UserID: userID,
@@ -181,22 +190,15 @@ func AddChatMessage(ctx *gin.Context) {
 					return "新对话"
 				}
 
-				// 优先检查最后一个消息（通常是用户消息）
-				lastIndex := len(input.MessageHistory) - 1
-				if lastMsg, ok := input.MessageHistory[lastIndex]["content"].(string); ok {
-					if len(lastMsg) <= 30 {
-						return lastMsg
-					}
-					return lastMsg[:30] + "..."
-				}
-
-				// 如果最后一个消息不是字符串，检查第二个消息
-				if len(input.MessageHistory) >= 2 {
-					if secondMsg, ok := input.MessageHistory[1]["content"].(string); ok {
-						if len(secondMsg) <= 30 {
-							return secondMsg
+				// 找到第一条用户消息作为标题
+				for _, msg := range input.MessageHistory {
+					if role, ok := msg["role"].(string); ok && role == "user" {
+						if content, ok := msg["content"].(string); ok && content != "" {
+							if len(content) <= 30 {
+								return content
+							}
+							return content[:30] + "..."
 						}
-						return secondMsg[:30] + "..."
 					}
 				}
 
@@ -214,13 +216,27 @@ func AddChatMessage(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "消息历史为空"})
 		return
 	}
-	lastMessage := input.MessageHistory[len(input.MessageHistory)-1]
-	messageID, ok := lastMessage["message_id"].(string)
+
+	// 找到最后一条用户消息（role为user的消息）
+	var lastUserMessage map[string]any
+	for i := len(input.MessageHistory) - 1; i >= 0; i-- {
+		if role, ok := input.MessageHistory[i]["role"].(string); ok && role == "user" {
+			lastUserMessage = input.MessageHistory[i]
+			break
+		}
+	}
+
+	if lastUserMessage == nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "未找到用户消息"})
+		return
+	}
+
+	messageID, ok := lastUserMessage["message_id"].(string)
 	if !ok {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "无效的消息ID类型"})
 		return
 	}
-	content, ok := lastMessage["content"].(string)
+	content, ok := lastUserMessage["content"].(string)
 	if !ok {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "无效的消息内容类型"})
 		return
@@ -238,16 +254,7 @@ func AddChatMessage(ctx *gin.Context) {
 		return
 	}
 
-	// 3.检查是否有files_info
-	if len(input.FilesInfo) > 0 {
-		// 拿到url，进行解析
-		// 如果是文件则进行markitdown返回string，如果是图片、视频、音频则返回url
-		// 将string或者url保存到数据库
-		// 调用不一样的AI接口
-		fmt.Println("开始解析文件")
-	}
-
-	// 4. 设置SSE响应头
+	// 3. 设置SSE响应头
 	ctx.Header("Content-Type", "text/event-stream")
 	ctx.Header("Cache-Control", "no-cache")
 	ctx.Header("Connection", "keep-alive")

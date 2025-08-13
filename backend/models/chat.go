@@ -23,11 +23,13 @@ type Message struct {
 }
 
 type File struct {
-	FileID    string    `json:"file_id" gorm:"primaryKey;type:varchar(64)"`
-	UserID    string    `json:"user_id" gorm:"type:varchar(64);index;not null"`
-	ChatID    string    `json:"chat_id" gorm:"type:varchar(64);index;not null"`
-	FileName  string    `json:"file_name" gorm:"type:varchar(255);not null"`
-	FileSize  int64     `json:"file_size" gorm:"not null"`
-	FileURL   string    `json:"file_url" gorm:"type:varchar(255);not null"`
-	CreatedAt time.Time `json:"created_at" gorm:"autoCreateTime;type:timestamp"`
+	FileID      string    `json:"file_id" gorm:"primaryKey;type:varchar(64)"`
+	UserID      string    `json:"user_id" gorm:"type:varchar(64);index;not null"`
+	ChatID      string    `json:"chat_id" gorm:"type:varchar(64);index;not null"`
+	FileName    string    `json:"file_name" gorm:"type:varchar(255);not null"`
+	FileSize    int64     `json:"file_size" gorm:"not null"`
+	FileURL     string    `json:"file_url" gorm:"type:varchar(255);not null"`
+	FileType    string    `json:"file_type" gorm:"type:varchar(32);default:file"`
+	FileContent string    `json:"file_content" gorm:"type:text"`
+	CreatedAt   time.Time `json:"created_at" gorm:"autoCreateTime;type:timestamp"`
 }

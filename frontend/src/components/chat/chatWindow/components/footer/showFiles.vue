@@ -1,13 +1,13 @@
 <template>
     <div class="show-files-container">
-        <div class="close-icon" @click="chatConfigStore.deleteFile(props.info.file_id,props.info.file_url)">
+        <div class="close-icon" @click="chatConfigStore.deleteFile(props.fileInfo.id,props.fileInfo.file_url)">
             <closeIcon class="close-icon-svg"/>
         </div>
-        <img class="show-files-img" :src="fileType === 'pdf' ? pdfIcon : fileType === 'ppt' ? pptIcon : fileType === 'excel' ? excelIcon : fileType === 'image' ? props.info.file_url : fileIcon" alt="file" />
+        <img class="show-files-img" :src="fileType === 'pdf' ? pdfIcon : fileType === 'ppt' ? pptIcon : fileType === 'excel' ? excelIcon : fileType === 'image' ? props.fileInfo.file_url : fileIcon" alt="file" />
         <div class="show-files-info">
             <span>{{ displayFileName }}</span>
             <div class="show-files-detail">
-                <span>{{ props.info.suffix }}</span>
+                <span>{{ fileType }}</span>
                 <span>|</span>
                 <span>{{ formattedFileSize }}</span>
             </div>
@@ -25,7 +25,7 @@ import fileIcon from '@/assets/icons/file.svg?url'
 import closeIcon from '@/assets/icons/叉.svg'
 
 const props = defineProps({
-    info: {
+    fileInfo: {
         type: Object,
         required: true
     }
@@ -35,24 +35,25 @@ const chatConfigStore = useChatConfigStore()
 
 
 const fileType = computed(() => {
-    const suffix = props.info.suffix.toLowerCase()
-    if (suffix === '.jpg' || suffix === '.png' || suffix === '.jpeg' || suffix === '.gif' || suffix === '.bmp' || suffix === '.webp') {
+    console.log(props.fileInfo)
+    const suffix = props.fileInfo.file_name.split('.').pop()
+    console.log(suffix)
+    if (suffix === 'jpg' || suffix === 'png' || suffix === 'jpeg' || suffix === 'gif' || suffix === 'bmp' || suffix === 'webp') {
         return 'image'
-    } else if (suffix === '.pdf') {
+    } else if (suffix === 'pdf') {
         return 'pdf'
-    } else if (suffix === '.pptx' || suffix === '.ppt') {
+    } else if (suffix === 'pptx' || suffix === 'ppt') {
         return 'ppt'
-    } else if (suffix === '.xlsx' || suffix === '.xls') {
+    } else if (suffix === 'xlsx' || suffix === 'xls') {
         return 'excel'
     } else {
-        console.log('后缀',suffix)
         return 'file'
     }
 })
 
 // 限制文件名最多显示10个字符
 const displayFileName = computed(() => {
-    const name = props.info.name
+    const name = props.fileInfo.file_name
     if (name.length > 10) {
         return name.substring(0, 10) + '...'
     }
@@ -61,7 +62,7 @@ const displayFileName = computed(() => {
 
 // 格式化文件大小
 const formattedFileSize = computed(() => {
-    const size = props.info.size
+    const size = props.fileInfo.file_size
     if (size < 1024) {
         return size + 'B'
     } else if (size < 1024 * 1024) {

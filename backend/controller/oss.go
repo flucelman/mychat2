@@ -13,6 +13,24 @@ import (
 	"github.com/google/uuid"
 )
 
+// 根据文件后缀获取文件类型
+func getFileType(filename string) string {
+	suffix := strings.ToLower(filename[strings.LastIndex(filename, "."):])
+	switch suffix {
+	case ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp":
+		return "image"
+	case ".mp4", ".avi", ".mov", ".wmv", ".flv", ".mkv":
+		return "video"
+	case ".mp3", ".wav", ".aac", ".m4a", ".ogg", ".flac":
+		return "audio"
+	case ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".pdf", ".txt", ".md", ".html":
+		return "file"
+	default:
+		return "file"
+	}
+}
+
+// 上传文件
 func UploadFile(ctx *gin.Context) {
 	userID := ctx.GetString("userID")
 	form, err := ctx.MultipartForm()
@@ -53,26 +71,27 @@ func UploadFile(ctx *gin.Context) {
 				}
 				return
 			}
+			fileType := getFileType(f.Filename)
 			fileID := uuid.New().String()
 			// url 写到数据库
 			global.DB.Create(&models.File{
-				FileID:   fileID,
-				UserID:   userID,
-				ChatID:   chatID,
-				FileName: f.Filename,
-				FileSize: f.Size,
-				FileURL:  url,
+				FileID:      fileID,
+				UserID:      userID,
+				ChatID:      chatID,
+				FileName:    f.Filename,
+				FileSize:    f.Size,
+				FileURL:     url,
+				FileType:    fileType,
+				FileContent: "",
 			})
-			suffix := ""
-			if dot := strings.LastIndex(f.Filename, "."); dot != -1 {
-				suffix = f.Filename[dot:]
-			}
 			successInfos[i] = gin.H{
-				"name":     f.Filename,
-				"suffix":   suffix,
-				"size":     f.Size,
-				"file_id":  fileID,
-				"file_url": url,
+				"id":           fileID,
+				"role":         "file",
+				"file_name":    f.Filename,
+				"file_size":    f.Size,
+				"file_url":     url,
+				"file_type":    fileType,
+				"file_content": "",
 			}
 		}()
 	}

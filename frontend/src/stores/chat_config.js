@@ -15,7 +15,7 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
     const openEyes = ref(false)
     // ================ AIChat ================
     const chatHistory = ref([])
-    const chatId = ref('')
+    const chatId = ref(uuidv4())
     const systemPrompt = ref('you are a helpful assistant')
     const AIConfig = reactive({
         model: 'ChatGPT-5',
@@ -37,7 +37,7 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
     ])
     const userMessage = ref('')
     const instantAssistantMessage = ref('')
-    const filesInfo = ref([])
+    const filesInfo = ref([]) //临时存储文件信息
     const isReceiving = ref(false)
 
     // 添加 AbortController 来管理请求取消
@@ -45,7 +45,7 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
     const assistantMessageId = ref(null)
     // 发送消息
     const sendUserMessage = async () => {
-        console.log("baseMessageHistory",baseMessageHistory.value)
+        console.log("baseMessageHistory", baseMessageHistory.value)
         if (userMessage.value.trim() === '') {
             ElMessage.error(t('message.input_placeholder'))
             return
@@ -58,18 +58,20 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
 
         // 保存用户消息的值，避免被清空
         const currentUserMessage = userMessage.value
-
         // 把filesInfo.value中的file_id和file_url添加到baseMessageHistory.value中
         filesInfo.value.forEach(item => {
             baseMessageHistory.value.push({
-                role: 'file',
                 id: item.file_id,
+                role: 'file',
                 file_url: item.file_url,
-                size: item.size,
-                name: item.name
+                file_size: item.file_size,
+                file_name: item.file_name,
+                file_type: item.file_type,
+                file_content: item.file_content
             })
         })
         filesInfo.value = []
+
         // 创建用户消息的副本并推入历史记录
         baseMessageHistory.value.push({
             role: 'user',
@@ -78,14 +80,12 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
             message_id: uuidv4()
         })
 
-        
-        
+
         // 创建要发送的消息对象
         const messageToSend = {
             chat_id: chatId.value,
             AI_config: AIConfig,
             message_history: sendMessageHistory.value,  // 使用.value获取计算属性的值
-            files_info: filesInfo.value
         }
 
         // 把当前聊天放到最前面
@@ -97,7 +97,7 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
         // 清空输入框和之前的AI响应
         userMessage.value = ''
         instantAssistantMessage.value = ''
-        
+
         try {
             // 获取全局设置store来获取token
             const globalSettingStore = useGlobalSettingStore()
@@ -194,12 +194,12 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
             // 获取聊天标题
             let title = '新对话'
             baseMessageHistory.value.forEach(item => {
-                if(item.role == 'user'){
+                if (item.role == 'user') {
                     title = item.content
                     return
                 }
             })
-            
+
             chatHistory.value.unshift({
                 chat_id: chatId.value,
                 title: title,
@@ -244,7 +244,7 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
         const response = await http.get(API.backend_url + `/api/chat/getChatMessage/${chat_id}`)
         // 清空数组并添加新数据，而不是直接赋值
         baseMessageHistory.value.splice(0, baseMessageHistory.value.length, ...response.data)
-        console.log("baseMessageHistory",baseMessageHistory)
+        console.log("baseMessageHistory", baseMessageHistory)
     }
 
     // 删除所有聊天记录
@@ -297,10 +297,10 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
     const uploadingFiles = ref(0)
 
     // 删除文件
-    const deleteFile = (file_id,file_url) => {
-        filesInfo.value = filesInfo.value.filter(item => item.file_id != file_id)
-        http.post(API.backend_url + `/api/oss/deleteFile`,{
-            file_id: file_id,
+    const deleteFile = (id, file_url) => {
+        filesInfo.value = filesInfo.value.filter(item => item.id != id)
+        http.post(API.backend_url + `/api/oss/deleteFile`, {
+            file_id: id,
             file_url: file_url
         })
     }
@@ -324,7 +324,7 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
         deleteSingleHistory,
         newChat,
         getModelList,
-        modelList,  
+        modelList,
         isUploading,
         uploadingFiles,
         deleteFile
