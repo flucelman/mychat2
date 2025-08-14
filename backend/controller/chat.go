@@ -97,7 +97,8 @@ func GetChatMessage(ctx *gin.Context) {
 
 	// 定义统一的响应结构
 	type CombinedResponse struct {
-		ID          string    `json:"id"`
+		MessageID   string    `json:"message_id,omitempty"`
+		FileID      string    `json:"file_id,omitempty"`
 		Role        string    `json:"role"`
 		Content     string    `json:"content,omitempty"`
 		Model       string    `json:"model,omitempty"`
@@ -114,7 +115,7 @@ func GetChatMessage(ctx *gin.Context) {
 	// 添加消息到结果中
 	for _, msg := range message {
 		combinedResponse = append(combinedResponse, CombinedResponse{
-			ID:        msg.MessageID,
+			MessageID: msg.MessageID,
 			Role:      msg.Role,
 			Content:   msg.Content,
 			Model:     msg.Model,
@@ -125,7 +126,7 @@ func GetChatMessage(ctx *gin.Context) {
 	// 添加文件到结果中
 	for _, f := range file {
 		combinedResponse = append(combinedResponse, CombinedResponse{
-			ID:          f.FileID,
+			FileID:      f.FileID,
 			Role:        "file",
 			FileURL:     f.FileURL,
 			FileSize:    f.FileSize,

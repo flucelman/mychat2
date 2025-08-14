@@ -16,7 +16,7 @@
         <div class="input-container-inner">
             <Plugin />
             <div class="input-container-inner-right">
-                <UploadFiles />
+                <UploadFiles :key="chatConfigStore.chatId" />
                 <Send />
             </div>
         </div>

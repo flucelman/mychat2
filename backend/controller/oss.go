@@ -4,6 +4,7 @@ import (
 	"backend/global"
 	"backend/models"
 	"backend/utils"
+	"backend/utils/grpc"
 	"fmt"
 	"net/http"
 	"strings"
@@ -73,6 +74,13 @@ func UploadFile(ctx *gin.Context) {
 			}
 			fileType := getFileType(f.Filename)
 			fileID := uuid.New().String()
+			fileContent := ""
+			if fileType == "file" {
+				content, err := grpc.FileParsing(url)
+				if err == nil && content != "" {
+					fileContent = "file_content: " + content
+				}
+			}
 			// url 写到数据库
 			global.DB.Create(&models.File{
 				FileID:      fileID,
@@ -82,16 +90,16 @@ func UploadFile(ctx *gin.Context) {
 				FileSize:    f.Size,
 				FileURL:     url,
 				FileType:    fileType,
-				FileContent: "",
+				FileContent: fileContent,
 			})
 			successInfos[i] = gin.H{
-				"id":           fileID,
+				"file_id":      fileID,
 				"role":         "file",
 				"file_name":    f.Filename,
 				"file_size":    f.Size,
 				"file_url":     url,
 				"file_type":    fileType,
-				"file_content": "",
+				"file_content": fileContent,
 			}
 		}()
 	}

@@ -276,7 +276,7 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
     // 新建聊天
     const newChat = async () => {
         cancelConnection()
-        chatId.value = ''
+        chatId.value = uuidv4()
         baseMessageHistory.value.splice(0, baseMessageHistory.value.length)
         ElMessage.success(t('message.newChatSuccess'))
     }
@@ -297,10 +297,10 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
     const uploadingFiles = ref(0)
 
     // 删除文件
-    const deleteFile = (id, file_url) => {
-        filesInfo.value = filesInfo.value.filter(item => item.id != id)
+    const deleteFile = (file_id, file_url) => {
+        filesInfo.value = filesInfo.value.filter(item => item.file_id != file_id)
         http.post(API.backend_url + `/api/oss/deleteFile`, {
-            file_id: id,
+            file_id: file_id,
             file_url: file_url
         })
     }

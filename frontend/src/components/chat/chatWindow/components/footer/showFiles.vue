@@ -1,6 +1,6 @@
 <template>
     <div class="show-files-container">
-        <div class="close-icon" @click="chatConfigStore.deleteFile(props.fileInfo.id,props.fileInfo.file_url)">
+        <div class="close-icon" @click="chatConfigStore.deleteFile(props.fileInfo.file_id,props.fileInfo.file_url)">
             <closeIcon class="close-icon-svg"/>
         </div>
         <img class="show-files-img" :src="fileType === 'pdf' ? pdfIcon : fileType === 'ppt' ? pptIcon : fileType === 'excel' ? excelIcon : fileType === 'image' ? props.fileInfo.file_url : fileIcon" alt="file" />

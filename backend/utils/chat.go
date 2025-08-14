@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/sashabaranov/go-openai"
@@ -103,37 +104,27 @@ func AIStreamResponse(ctx context.Context, answerCh chan<- string, model string,
 
 		// 检查 content 字段
 		contentInterface, ok := msg["content"]
-		if role == "user" || role == "assistant" {
-			if !ok || contentInterface == nil {
-				continue // 跳过没有 content 字段或 content 为 nil 的消息
-			}
-			content, ok := contentInterface.(string)
-			if !ok {
-				continue // 跳过 content 不是字符串的消息
-			}
-			if content == "" {
-				continue // 跳过空内容的消息
-			}
-		}
-		// 检查是否role为file
+		// 先处理文件类消息，避免对 nil content 做类型断言
 		if role == "file" {
-			if msg["file_type"] == "image" {
-				fmt.Println("image", msg["file_url"])
-				messages = append(messages, openai.ChatCompletionMessage{
-					Role: openai.ChatMessageRoleUser,
-					MultiContent: []openai.ChatMessagePart{
-						{
-							Type: openai.ChatMessagePartTypeImageURL,
-							ImageURL: &openai.ChatMessageImageURL{
-								URL: msg["file_url"].(string),
-							},
-						},
-					},
-				})
+			fileMsgs := handleFile(msg)
+			if len(fileMsgs) > 0 {
+				messages = append(messages, fileMsgs...)
+			} else {
+				fmt.Println("file 消息未生成有效内容，跳过")
 			}
 			continue
 		}
-		content := contentInterface.(string)
+
+		// 处理非文件类消息，需要安全地读取 content
+		if !ok || contentInterface == nil {
+			fmt.Println("content 缺失或为 nil，跳过")
+			continue
+		}
+		content, ok := contentInterface.(string)
+		if !ok || strings.TrimSpace(content) == "" {
+			fmt.Println("content 不是字符串或为空，跳过")
+			continue
+		}
 		var openaiRole string
 		switch role {
 		case "user":
@@ -213,4 +204,39 @@ func AIStreamResponse(ctx context.Context, answerCh chan<- string, model string,
 			}
 		}
 	}
+}
+
+func handleFile(msg map[string]any) []openai.ChatCompletionMessage {
+	var messages []openai.ChatCompletionMessage
+	switch msg["file_type"] {
+	case "image":
+		fmt.Println("image", msg["file_url"])
+		messages = append(messages, openai.ChatCompletionMessage{
+			Role: openai.ChatMessageRoleUser,
+			MultiContent: []openai.ChatMessagePart{
+				{
+					Type: openai.ChatMessagePartTypeImageURL,
+					ImageURL: &openai.ChatMessageImageURL{
+						URL: msg["file_url"].(string),
+					},
+				},
+			},
+		})
+		return messages
+	case "file":
+		fmt.Println("开始解析file")
+		fileContent := "parse file failed"
+		// 认为空字符串等同于没有内容，需要触发解析
+		fmt.Println("msg的内容:", msg)
+		if s, ok := msg["file_content"].(string); ok && strings.TrimSpace(s) != "" {
+			fmt.Println("file_content不为空")
+			fileContent = s
+		}
+		messages = append(messages, openai.ChatCompletionMessage{
+			Role:    openai.ChatMessageRoleUser,
+			Content: "file_content: " + fileContent,
+		})
+
+	}
+	return messages
 }
