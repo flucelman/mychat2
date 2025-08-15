@@ -56,6 +56,7 @@ import pdfIcon from '@/assets/icons/pdf.svg?url'
 import pptIcon from '@/assets/icons/ppt.svg?url'
 import excelIcon from '@/assets/icons/excel.svg?url'
 import fileIcon from '@/assets/icons/file.svg?url'
+import videoIcon from '@/assets/icons/video.svg?url'
 
 // 获取文件类型
 const getFileType = (fileName) => {
@@ -68,6 +69,8 @@ const getFileType = (fileName) => {
         return 'ppt'
     } else if (suffix === 'xlsx' || suffix === 'xls') {
         return 'excel'
+    } else if (suffix === 'mp4' || suffix === 'avi' || suffix === 'mov' || suffix === 'wmv' || suffix === 'flv' || suffix === 'mkv') {
+        return 'video'
     } else {
         return 'file'
     }
@@ -80,6 +83,7 @@ const getFileIcon = (fileMessage) => {
     if (type === 'ppt') return pptIcon
     if (type === 'excel') return excelIcon
     if (type === 'image') return fileMessage.file_url
+    if (type === 'video') return videoIcon
     return fileIcon
 }
 

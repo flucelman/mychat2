@@ -151,7 +151,23 @@ func GetChatMessage(ctx *gin.Context) {
 
 // 查询模型列表
 func GetModelList(ctx *gin.Context) {
-	modelList := config.AIModels
+	type ModelList struct {
+		Key     string `json:"key"`
+		Name    string `json:"name"`
+		Logo    string `json:"logo"`
+		Ability string `json:"ability"`
+		Price   string `json:"price"`
+	}
+	modelList := []ModelList{}
+	for _, model := range config.AIModels {
+		modelList = append(modelList, ModelList{
+			Key:     model.Key,
+			Name:    model.Name,
+			Logo:    model.Logo,
+			Ability: model.Ability,
+			Price:   model.Price,
+		})
+	}
 	ctx.JSON(http.StatusOK, modelList)
 }
 
@@ -299,7 +315,8 @@ func AddChatMessage(ctx *gin.Context) {
 
 	// 8. 启动AI流式响应
 	modelKey := config.GetModelKey(model) // 使用之前已经验证过的model变量
-	go utils.AIStreamResponse(answerCtx, answerCh, modelKey, float32(temperature), int(maxTokens), float32(topP), float32(frequencyPenalty), input.MessageHistory)
+	apiKey, baseURL := config.GetAIConfig(model)
+	go utils.AIStreamResponse(answerCtx, answerCh, apiKey, baseURL, modelKey, float32(temperature), int(maxTokens), float32(topP), float32(frequencyPenalty), input.MessageHistory)
 
 	// 9. 处理流式响应并通过SSE发送
 	fullResponse := ""

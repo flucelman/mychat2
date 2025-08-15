@@ -3,7 +3,7 @@
         <div class="close-icon" @click="chatConfigStore.deleteFile(props.fileInfo.file_id,props.fileInfo.file_url)">
             <closeIcon class="close-icon-svg"/>
         </div>
-        <img class="show-files-img" :src="fileType === 'pdf' ? pdfIcon : fileType === 'ppt' ? pptIcon : fileType === 'excel' ? excelIcon : fileType === 'image' ? props.fileInfo.file_url : fileIcon" alt="file" />
+        <img class="show-files-img" :src="fileType === 'pdf' ? pdfIcon : fileType === 'ppt' ? pptIcon : fileType === 'excel' ? excelIcon : fileType === 'image' ? props.fileInfo.file_url : fileType === 'video' ? videoIcon : fileIcon" alt="file" />
         <div class="show-files-info">
             <span>{{ displayFileName }}</span>
             <div class="show-files-detail">
@@ -23,6 +23,7 @@ import pptIcon from '@/assets/icons/ppt.svg?url'
 import excelIcon from '@/assets/icons/excel.svg?url'
 import fileIcon from '@/assets/icons/file.svg?url'
 import closeIcon from '@/assets/icons/叉.svg'
+import videoIcon from '@/assets/icons/video.svg?url'
 
 const props = defineProps({
     fileInfo: {
@@ -46,6 +47,8 @@ const fileType = computed(() => {
         return 'ppt'
     } else if (suffix === 'xlsx' || suffix === 'xls') {
         return 'excel'
+    } else if (suffix === 'mp4' || suffix === 'avi' || suffix === 'mov' || suffix === 'wmv' || suffix === 'flv' || suffix === 'mkv') {
+        return 'video'
     } else {
         return 'file'
     }

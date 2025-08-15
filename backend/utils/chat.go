@@ -4,6 +4,7 @@ import (
 	"backend/global"
 	"backend/models"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -77,15 +78,10 @@ func AIResponse(model string, temperature float32, max_tokens int, top_p float32
 }
 
 // 调用AI接口
-func AIStreamResponse(ctx context.Context, answerCh chan<- string, model string, temperature float32, max_tokens int, top_p float32, frequency_penalty float32, message_history []map[string]any) {
-	config := openai.DefaultConfig(os.Getenv("AI_API_KEY"))
+func AIStreamResponse(ctx context.Context, answerCh chan<- string, apiKey, baseURL, model string, temperature float32, max_tokens int, top_p float32, frequency_penalty float32, message_history []map[string]any) {
 
-	// 如果设置了自定义 AI_URL，则使用自定义端点
-	if aiURL := os.Getenv("AI_BASE_URL"); aiURL != "" {
-		config.BaseURL = aiURL
-	}
-
-	client := openai.NewClientWithConfig(config)
+	config := openai.DefaultConfig(apiKey)
+	config.BaseURL = baseURL
 
 	// 构建消息数组
 	messages := []openai.ChatCompletionMessage{}
@@ -142,7 +138,9 @@ func AIStreamResponse(ctx context.Context, answerCh chan<- string, model string,
 			Content: content,
 		})
 	}
-
+	jsonData, _ := json.Marshal(messages)
+	fmt.Println("messages设置：", string(jsonData))
+	client := openai.NewClientWithConfig(config)
 	stream, err := client.CreateChatCompletionStream(
 		ctx,
 		openai.ChatCompletionRequest{
@@ -236,7 +234,20 @@ func handleFile(msg map[string]any) []openai.ChatCompletionMessage {
 			Role:    openai.ChatMessageRoleUser,
 			Content: "file_content: " + fileContent,
 		})
+	case "video":
 
+		messages = append(messages, openai.ChatCompletionMessage{
+			Role: openai.ChatMessageRoleUser,
+			MultiContent: []openai.ChatMessagePart{
+				{
+					Type: openai.ChatMessagePartTypeVideoURL,
+					VideoURL: map[string]any{
+						"url": msg["file_url"].(string),
+					},
+				},
+			},
+		})
+		return messages
 	}
 	return messages
 }

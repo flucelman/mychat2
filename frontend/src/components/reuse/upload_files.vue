@@ -32,8 +32,8 @@
     selectedFiles.value = files
     emit('files-selected', files)
     // 关键：重置 input 的值，确保再次选择相同文件也能触发 change
-    // event.target.value = ''
-    // if (fileInput.value) fileInput.value.value = ''
+    event.target.value = ''
+    if (fileInput.value) fileInput.value.value = ''
   }
 
 
