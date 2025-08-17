@@ -18,7 +18,7 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
     const chatId = ref(uuidv4())
     const systemPrompt = ref('you are a helpful assistant')
     const AIConfig = reactive({
-        model: 'ChatGPT-5',
+        model: 'Gemini-2.5-Flash',
         temperature: 0.5,
         max_tokens: 4096,
         top_p: 1,

@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+option go_package = "./AIResponse";
+
+package AIResponse;
+
+service Greeter {
+    rpc AIResponse (AIStreamRequest) returns (stream AIStreamResponseReply);
+}
+
+message AIStreamRequest {
+    string model = 1;
+    string apiKey = 2;
+    string baseUrl = 3;
+    float temperature = 4;
+    int32 maxTokens = 5;
+    float topP = 6;
+    float frequencyPenalty = 7;
+    repeated Message messageHistory = 8;
+}
+
+message Message {
+    string role = 1;
+    string content = 2;
+    string file_type = 3;
+    string file_url = 4;
+    string file_content = 5;
+}
+
+message AIStreamResponseReply {
+    string content = 1;
+}
