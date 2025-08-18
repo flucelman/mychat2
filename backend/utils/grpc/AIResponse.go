@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"time"
 
@@ -20,14 +19,14 @@ func AIStreamResponse(
 	model string,
 	apiKey string,
 	baseUrl string,
-	temperature float32,
-	maxTokens int,
-	topP float32, frequencyPenalty float32, messageHistory []map[string]any) string {
+	aiConfig map[string]any,
+	messageHistory []map[string]any) string {
 	addr := os.Getenv("GRPC_AIRESPONSE")
 	fmt.Println("addr:", addr)
 	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Fatalf("did not connect: %v", err)
+		fmt.Println("连接失败: ", err)
+		return ""
 	}
 	defer conn.Close()
 
@@ -39,10 +38,12 @@ func AIStreamResponse(
 	messages := make([]*AIResponse.Message, 0, len(messageHistory))
 	for _, msg := range messageHistory {
 		message := &AIResponse.Message{
-			Role:    msg["role"].(string),
-			Content: msg["content"].(string),
+			Role: msg["role"].(string),
 		}
 		// 可选字段
+		if content, ok := msg["content"].(string); ok {
+			message.Content = content
+		}
 		if fileType, ok := msg["file_type"].(string); ok {
 			message.FileType = fileType
 		}
@@ -55,27 +56,24 @@ func AIStreamResponse(
 		messages = append(messages, message)
 	}
 
-	fmt.Println("messages格式", messages)
-
 	// 创建请求
 	request := &AIResponse.AIStreamRequest{
 		Model:            model,
 		ApiKey:           apiKey,
 		BaseUrl:          baseUrl,
-		Temperature:      temperature,
-		MaxTokens:        int32(maxTokens),
-		TopP:             topP,
-		FrequencyPenalty: frequencyPenalty,
+		Temperature:      float32(aiConfig["temperature"].(float64)),
+		MaxTokens:        int32(aiConfig["max_tokens"].(float64)),
+		TopP:             float32(aiConfig["top_p"].(float64)),
+		FrequencyPenalty: float32(aiConfig["frequency_penalty"].(float64)),
 		MessageHistory:   messages,
 	}
 
 	// 调用服务
 	stream, err := client.AIResponse(ctx, request)
 	if err != nil {
-		log.Fatalf("调用服务失败: %v", err)
+		fmt.Println("调用服务失败: ", err)
+		return ""
 	}
-
-	fmt.Println("AI 响应:")
 	for {
 		response, err := stream.Recv()
 		if err == io.EOF {
@@ -83,13 +81,12 @@ func AIStreamResponse(
 			break
 		}
 		if err != nil {
-			log.Fatalf("接收响应失败: %v", err)
+			fmt.Println("接收响应失败: ", err)
+			return ""
 		}
 		// 打印每个流式响应片段
-		fmt.Print(response.GetContent())
 		answerCh <- response.GetContent()
 	}
-	fmt.Println() // 最后打印一个换行
 	close(answerCh)
 	return ""
 }

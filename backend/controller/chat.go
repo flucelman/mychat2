@@ -283,31 +283,6 @@ func AddChatMessage(ctx *gin.Context) {
 	ctx.SSEvent("start", gin.H{"chat_id": input.ChatID, "assistant_message_id": assistantMessageID})
 	ctx.Writer.Flush()
 
-	// 6. 参数验证和类型转换
-	temperature, ok := input.AIConfig["temperature"].(float64)
-	if !ok {
-		ctx.SSEvent("error", gin.H{"error": "temperature must be a number"})
-		return
-	}
-
-	topP, ok := input.AIConfig["top_p"].(float64)
-	if !ok {
-		ctx.SSEvent("error", gin.H{"error": "top_p must be a number"})
-		return
-	}
-
-	frequencyPenalty, ok := input.AIConfig["frequency_penalty"].(float64)
-	if !ok {
-		ctx.SSEvent("error", gin.H{"error": "frequency_penalty must be a number"})
-		return
-	}
-
-	maxTokens, ok := input.AIConfig["max_tokens"].(float64)
-	if !ok {
-		ctx.SSEvent("error", gin.H{"error": "max_tokens must be a number"})
-		return
-	}
-
 	// 7. 创建通道和上下文
 	answerCh := make(chan string)
 	answerCtx, cancel := context.WithCancel(context.Background())
@@ -316,7 +291,7 @@ func AddChatMessage(ctx *gin.Context) {
 	// 8. 启动AI流式响应
 	modelKey := config.GetModelKey(model) // 使用之前已经验证过的model变量
 	apiKey, baseURL := config.GetAIConfig(model)
-	go utils.AIStreamResponse(answerCtx, answerCh, apiKey, baseURL, modelKey, float32(temperature), int(maxTokens), float32(topP), float32(frequencyPenalty), input.MessageHistory)
+	go utils.AIStreamResponse(answerCtx, answerCh, apiKey, baseURL, modelKey, input.AIConfig, input.MessageHistory)
 
 	// 9. 处理流式响应并通过SSE发送
 	fullResponse := ""

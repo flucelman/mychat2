@@ -43,11 +43,8 @@ func AIStreamResponse(
 	apiKey,
 	baseURL,
 	model string,
-	temperature float32,
-	max_tokens int,
-	top_p float32,
-	frequency_penalty float32,
+	aiConfig map[string]any,
 	message_history []map[string]any) {
 
-	answerCh <- grpc.AIStreamResponse(ctx, answerCh, model, apiKey, baseURL, temperature, max_tokens, top_p, frequency_penalty, message_history)
+	grpc.AIStreamResponse(ctx, answerCh, model, apiKey, baseURL, aiConfig, message_history)
 }

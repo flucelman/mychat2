@@ -23,6 +23,8 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
         max_tokens: 4096,
         top_p: 1,
         frequency_penalty: 0,
+        online_search_manual: false,
+        online_search_auto: false
     })
     // 基础消息历史（不包含system消息）
     const baseMessageHistory = ref([])
