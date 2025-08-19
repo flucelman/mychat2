@@ -2,20 +2,22 @@
     <div class="body-container">
         <div class="message-container" v-for="(group, groupIndex) in groupedMessages" :key="groupIndex">
             <!-- 非文件消息 -->
-            <div v-if="group.type !== 'files'" class="message-item" :class="group.message.role">
-                <div class="message-model user username" v-if="group.message.role == 'user' && (groupIndex === 0 || groupedMessages[groupIndex - 1].type !== 'files')">{{
-                    globalSettingStore.userInfo.username }}</div>
-                <div class="message-model assistant" v-if="group.message.role == 'assistant'">
+            <div v-if="group.type == 'message'" class="message-item" :class="group.message.role">
+                <div class="message-model user username"
+                    v-if="group.message.role == 'user' && (groupIndex === 0 || groupedMessages[groupIndex - 1].type !== 'files')">
+                    {{ globalSettingStore.userInfo.username }}</div>
+                <div class="message-model assistant"
+                    v-if="group.message.role == 'assistant' && (groupIndex === 0 || groupedMessages[groupIndex - 1].type !== 'search')">
                     <img :src="API.backend_url + '/assets/icons/modelLogo/' + chatConfigStore.modelList.find(item => item.name == group.message.model)?.logo"
                         class="model-icon" />
-                    <div class="model-name-text">
+                    <div class="model-name-text" v-if="group.message.role != 'search'">
                         {{ group.message.model }}
                     </div>
                 </div>
                 <div class="message-content">{{ group.message.content }}</div>
             </div>
             <!-- 文件消息组 -->
-            <div v-else class="message-item file">
+            <div v-else-if="group.type == 'files'" class="message-item file">
                 <div class="message-model user username">{{ globalSettingStore.userInfo.username }}</div>
                 <div class="files-container">
                     <div class="file-item" v-for="fileMessage in group.files" :key="fileMessage.id">
@@ -31,6 +33,17 @@
                     </div>
                 </div>
             </div>
+            <!-- 联网搜索消息组 -->
+            <div v-else-if="group.type == 'search'" class="message-item search">
+                <div class="message-model assistant">
+                    <img :src="API.backend_url + '/assets/icons/modelLogo/' + chatConfigStore.modelList.find(item => item.name == group.search.model)?.logo"
+                        class="model-icon" />
+                    <div class="model-name-text">
+                        {{ group.search.model }}
+                    </div>
+                </div>
+                <div class="message-content" @click="openSearchDrawer(group.search.content)">联网搜索结果</div>
+            </div>
         </div>
         <div v-if="chatConfigStore.isReceiving == true" class="message-item assistant">
             <div class="message-model assistant">
@@ -42,11 +55,16 @@
             </div>
             <div class="message-content">{{ chatConfigStore.instantAssistantMessage }}</div>
         </div>
+        
+        <!-- 统一的搜索结果抽屉 -->
+        <el-drawer v-model="searchDrawer" :title="$t('message.onlineSearch')" :direction="'rtl'">
+            <search-card :search="currentSearchContent" />
+        </el-drawer>
     </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, nextTick } from 'vue'
 import { useChatConfigStore } from '@/stores/chat_config'
 const chatConfigStore = useChatConfigStore()
 import { useGlobalSettingStore } from '@/stores/global_setting'
@@ -57,6 +75,20 @@ import pptIcon from '@/assets/icons/ppt.svg?url'
 import excelIcon from '@/assets/icons/excel.svg?url'
 import fileIcon from '@/assets/icons/file.svg?url'
 import videoIcon from '@/assets/icons/video.svg?url'
+import SearchCard from './body/searchCard.vue'
+
+const searchDrawer = ref(false)
+const currentSearchContent = ref('')
+
+// 打开搜索抽屉并设置当前搜索内容
+const openSearchDrawer = (content) => {
+    // 先设置内容，再打开抽屉，确保内容更新
+    currentSearchContent.value = content
+    // 使用nextTick确保DOM更新后再打开抽屉
+    nextTick(() => {
+        searchDrawer.value = true
+    })
+}
 
 // 获取文件类型
 const getFileType = (fileName) => {
@@ -112,7 +144,7 @@ const formatFileSize = (size) => {
 const groupedMessages = computed(() => {
     const groups = []
     let currentFileGroup = null
-    
+
     chatConfigStore.baseMessageHistory.forEach(message => {
         if (message.role === 'file') {
             if (!currentFileGroup) {
@@ -123,6 +155,12 @@ const groupedMessages = computed(() => {
                 groups.push(currentFileGroup)
             }
             currentFileGroup.files.push(message)
+        } else if (message.role === 'search') {
+            currentFileGroup = null
+            groups.push({
+                type: 'search',
+                search: message
+            })
         } else {
             currentFileGroup = null
             groups.push({
@@ -131,7 +169,7 @@ const groupedMessages = computed(() => {
             })
         }
     })
-    
+
     return groups
 })
 </script>
@@ -170,6 +208,10 @@ const groupedMessages = computed(() => {
 }
 
 .message-item.assistant {
+    align-self: flex-start;
+}
+
+.message-item.search {
     align-self: flex-start;
 }
 
@@ -212,7 +254,7 @@ const groupedMessages = computed(() => {
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: var(--secondary-background);    
+    background-color: var(--secondary-background);
     border-radius: 8px;
     border: 1px solid var(--border-color);
     padding: 5px;

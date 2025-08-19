@@ -7,11 +7,12 @@
 package onlineSearch
 
 import (
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
+
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -121,7 +122,7 @@ const file_search_proto_rawDesc = "" +
 	"\x0eSearchResponse\x12\x14\n" +
 	"\x05reply\x18\x01 \x01(\tR\x05reply2V\n" +
 	"\aGreeter\x12K\n" +
-	"\fOnlineSearch\x12\x1b.onlineSearch.SearchRequest\x1a\x1c.onlineSearch.SearchResponse\"\x00B$Z\"backend/utils/grpc/pb/onlineSearchb\x06proto3"
+	"\fOnlineSearch\x12\x1b.onlineSearch.SearchRequest\x1a\x1c.onlineSearch.SearchResponse\"\x00B\x10Z\x0e./onlineSearchb\x06proto3"
 
 var (
 	file_search_proto_rawDescOnce sync.Once

@@ -1,6 +1,6 @@
 syntax = "proto3"; // 版本声明，使用Protocol Buffers v3版本
 
-option go_package = "backend/utils/grpc/pb/onlineSearch";
+option go_package = "./onlineSearch";
 package onlineSearch; // 包名
 
 // 定义服务

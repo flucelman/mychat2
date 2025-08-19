@@ -125,9 +125,9 @@ type Message struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Role          string                 `protobuf:"bytes,1,opt,name=role,proto3" json:"role,omitempty"`
 	Content       string                 `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
-	FileType      string                 `protobuf:"bytes,3,opt,name=file_type,json=fileType,proto3" json:"file_type,omitempty"`
-	FileUrl       string                 `protobuf:"bytes,4,opt,name=file_url,json=fileUrl,proto3" json:"file_url,omitempty"`
-	FileContent   string                 `protobuf:"bytes,5,opt,name=file_content,json=fileContent,proto3" json:"file_content,omitempty"`
+	FileType      string                 `protobuf:"bytes,3,opt,name=fileType,proto3" json:"fileType,omitempty"`
+	FileUrl       string                 `protobuf:"bytes,4,opt,name=fileUrl,proto3" json:"fileUrl,omitempty"`
+	FileContent   string                 `protobuf:"bytes,5,opt,name=fileContent,proto3" json:"fileContent,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -255,13 +255,13 @@ const file_AIResponse_proto_rawDesc = "" +
 	"\tmaxTokens\x18\x05 \x01(\x05R\tmaxTokens\x12\x12\n" +
 	"\x04topP\x18\x06 \x01(\x02R\x04topP\x12*\n" +
 	"\x10frequencyPenalty\x18\a \x01(\x02R\x10frequencyPenalty\x12;\n" +
-	"\x0emessageHistory\x18\b \x03(\v2\x13.AIResponse.MessageR\x0emessageHistory\"\x92\x01\n" +
+	"\x0emessageHistory\x18\b \x03(\v2\x13.AIResponse.MessageR\x0emessageHistory\"\x8f\x01\n" +
 	"\aMessage\x12\x12\n" +
 	"\x04role\x18\x01 \x01(\tR\x04role\x12\x18\n" +
-	"\acontent\x18\x02 \x01(\tR\acontent\x12\x1b\n" +
-	"\tfile_type\x18\x03 \x01(\tR\bfileType\x12\x19\n" +
-	"\bfile_url\x18\x04 \x01(\tR\afileUrl\x12!\n" +
-	"\ffile_content\x18\x05 \x01(\tR\vfileContent\"1\n" +
+	"\acontent\x18\x02 \x01(\tR\acontent\x12\x1a\n" +
+	"\bfileType\x18\x03 \x01(\tR\bfileType\x12\x18\n" +
+	"\afileUrl\x18\x04 \x01(\tR\afileUrl\x12 \n" +
+	"\vfileContent\x18\x05 \x01(\tR\vfileContent\"1\n" +
 	"\x15AIStreamResponseReply\x12\x18\n" +
 	"\acontent\x18\x01 \x01(\tR\acontent2Y\n" +
 	"\aGreeter\x12N\n" +

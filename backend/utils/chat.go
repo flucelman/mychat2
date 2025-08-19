@@ -18,13 +18,6 @@ func SaveDB(MessageID, userID, chatID, Role, Content, Model string) string {
 		Content:   Content,
 		Model:     Model,
 	}
-	// 如果role为user，则添加对话信息
-	if Role == "user" {
-		message.Role = "user"
-	} else {
-		// 如果role为assistant，则添加对话信息
-		message.Role = "assistant"
-	}
 	message.Content = Content
 	if err := global.DB.Create(&message).Error; err != nil {
 		return err.Error()

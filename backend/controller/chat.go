@@ -5,6 +5,7 @@ import (
 	"backend/global"
 	"backend/models"
 	"backend/utils"
+	"backend/utils/grpc"
 	"context"
 	"fmt"
 	"net/http"
@@ -220,6 +221,7 @@ func AddChatMessage(ctx *gin.Context) {
 				}
 
 				// 如果都失败了，返回默认标题
+				fmt.Println("都失败了，返回默认标题")
 				return "新对话"
 			}(),
 		}
@@ -231,6 +233,7 @@ func AddChatMessage(ctx *gin.Context) {
 	// 2. 添加用户信息到数据库
 	if len(input.MessageHistory) == 0 {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "消息历史为空"})
+		fmt.Println("消息历史为空")
 		return
 	}
 
@@ -263,12 +266,28 @@ func AddChatMessage(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "无效的模型类型"})
 		return
 	}
+	// 保存用户信息到数据库
+	go utils.SaveDB(messageID, userID, input.ChatID, "user", content, model)
 
-	fmt.Println("用户消息ID：", messageID)
-	response := utils.SaveDB(messageID, userID, input.ChatID, "user", content, model)
-	if response != "success" {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": response})
-		return
+	// 检查是否开启的联网搜索
+	onlineSearch := input.AIConfig["online_search"]
+	if onlineSearch == true {
+		onlineSearchResponse, err := grpc.OnlineSearch(content)
+		if err != nil {
+			fmt.Println("联网搜索失败", err)
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		searchMessageID := uuid.New().String()
+		go utils.SaveDB(searchMessageID, userID, input.ChatID, "search", onlineSearchResponse, model)
+		fmt.Println("联网搜索响应：", onlineSearchResponse)
+		ctx.SSEvent("search", gin.H{"search_result": onlineSearchResponse, "message_id": searchMessageID})
+		input.MessageHistory = append(input.MessageHistory, map[string]any{
+			"role":       "search",
+			"content":    onlineSearchResponse,
+			"message_id": searchMessageID,
+		})
+		ctx.Writer.Flush()
 	}
 
 	// 3. 设置SSE响应头

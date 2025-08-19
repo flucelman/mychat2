@@ -22,9 +22,9 @@ message AIStreamRequest {
 message Message {
     string role = 1;
     string content = 2;
-    string file_type = 3;
-    string file_url = 4;
-    string file_content = 5;
+    string fileType = 3;
+    string fileUrl = 4;
+    string fileContent = 5;
 }
 
 message AIStreamResponseReply {
