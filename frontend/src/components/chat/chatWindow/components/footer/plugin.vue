@@ -1,27 +1,32 @@
 <template>
     <div class="plugin-container">
-       <div class="plugin-item">
-        <DeepThinkingIcon class="plugin-item-icon" />
-        {{ $t('message.deepThinking') }}
-       </div>
-       <div class="plugin-item">
-        <OnlineSearchIcon class="plugin-item-icon" />
-        {{ $t('message.onlineSearch') }}
-       </div>
+        <div class="plugin-item">
+            <DeepThinkingIcon class="plugin-item-icon" />
+            {{ $t('message.deepThinking') }}
+        </div>
+        <div class="plugin-item"
+            @click="chatConfigStore.AIConfig.online_search = !chatConfigStore.AIConfig.online_search"
+            :class="{ 'active': chatConfigStore.AIConfig.online_search }">
+            <OnlineSearchIcon class="plugin-item-icon" />
+            {{ $t('message.onlineSearch') }}
+        </div>
     </div>
 </template>
 
 <script setup>
 import DeepThinkingIcon from '@/assets/icons/深度思考.svg'
 import OnlineSearchIcon from '@/assets/icons/联网搜索.svg'
+import { useChatConfigStore } from '@/stores/chat_config'
+const chatConfigStore = useChatConfigStore()
 </script>
 
 <style scoped>
-.plugin-container{
+.plugin-container {
     display: flex;
     gap: 10px;
 }
-.plugin-item{
+
+.plugin-item {
     padding: 10px;
     border-radius: 10px;
     border: 1px solid var(--border-color);
@@ -31,8 +36,15 @@ import OnlineSearchIcon from '@/assets/icons/联网搜索.svg'
     align-items: center;
     gap: 5px;
 }
-.plugin-item-icon{
+
+.plugin-item-icon {
     width: 20px;
     height: 20px;
+}
+
+.active {
+    background-color: #dee8ff;
+    color: #000;
+    border: 1px solid #1962ff;
 }
 </style>

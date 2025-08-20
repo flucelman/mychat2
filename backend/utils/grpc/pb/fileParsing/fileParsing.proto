@@ -1,0 +1,19 @@
+syntax = "proto3"; // 版本声明，使用Protocol Buffers v3版本
+
+option go_package = "backend/utils/grpc/pb/fileParsing";
+
+package fileParsing; // 包名
+
+
+// 定义服务
+service FileParsing {
+    rpc UploadFile(UploadRequest) returns (UploadResponse) {}
+}
+
+message UploadRequest {
+    string url = 1;
+}
+
+message UploadResponse {
+    string content = 1;
+}

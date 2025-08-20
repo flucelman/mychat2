@@ -60,6 +60,15 @@ var AIModels = []AIModel{
 		API_KEY:  "DASHSCOPE_API_KEY",
 		BASE_URL: "DASHSCOPE_BASE_URL",
 	},
+	{
+		Key:      "qwen-omni-turbo-latest",
+		Name:     "Qwen-Omni-Turbo",
+		Logo:     "Qwen.svg",
+		Ability:  "image,audio,video",
+		Price:    "100",
+		API_KEY:  "DASHSCOPE_API_KEY",
+		BASE_URL: "DASHSCOPE_BASE_URL",
+	},
 }
 
 // 根据name获取key

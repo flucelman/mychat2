@@ -57,5 +57,7 @@ export default {
         delete: '删除',
         uploadSuccess: '个文件上传成功',
         uploadFailed: '上传失败',
+        rememberMe: '记住我',
+        searchResult: '联网搜索结果🔎',
     }
 }

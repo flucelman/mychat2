@@ -18,6 +18,9 @@
                 </div>
             </div>
             <div class="input-item">
+                <el-checkbox v-model="globalSettingStore.rememberMe" :label="$t('message.rememberMe')" />
+            </div>
+            <div class="input-item">
                 <el-button type="primary" @click="login" :loading="loading">
                     {{ loading ? $t('message.loginInProgress') : $t('message.login') }}
                 </el-button>
@@ -38,8 +41,8 @@ import { API } from '@/router/api'
 const { t } = useI18n()
 const globalSettingStore = useGlobalSettingStore()
 const chatConfigStore = useChatConfigStore()
-const email = ref('')
-const password = ref('')
+const email = ref(localStorage.getItem('email') || '')
+const password = ref(localStorage.getItem('password') || '')
 const loading = ref(false)
 
 const login = async () => {
@@ -66,6 +69,13 @@ const login = async () => {
             globalSettingStore.userToken = data.token
             chatConfigStore.getChatHistory()
             ElMessage.success(data.message || t('message.loginSuccess'))
+            if (globalSettingStore.rememberMe) {
+                localStorage.setItem('email', email.value)
+                localStorage.setItem('password', password.value)
+            } else {
+                localStorage.removeItem('email')
+                localStorage.removeItem('password')
+            }
         } else {
             // 登录失败，显示后端返回的具体错误信息
             ElMessage.error(data.message || t('message.loginFailed'))

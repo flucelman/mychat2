@@ -15,6 +15,7 @@ export const useGlobalSettingStore = defineStore('globalSetting', () => {
     const isMobile = ref(false)
 
     // 是否登录
+    const rememberMe = ref(true)
     const isLogin = ref(false)
     const userToken = ref('')
     const userInfo = ref({})
@@ -59,10 +60,11 @@ export const useGlobalSettingStore = defineStore('globalSetting', () => {
         checkToken,
         logout,
         userInfo,
-        getUserInfo
+        getUserInfo,
+        rememberMe
     }
 }, {
     persist: {
-        pick: ['lang', 'theme', 'isLogin', 'userToken']
+        pick: ['lang', 'theme', 'isLogin', 'userToken', 'rememberMe']
     }
 })

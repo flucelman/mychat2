@@ -18,14 +18,17 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
     const chatId = ref(uuidv4())
     const systemPrompt = ref('you are a helpful assistant')
     const AIConfig = reactive({
-        model: 'ChatGPT-5',
+        model: 'Gemini-2.5-Flash',
         temperature: 0.5,
         max_tokens: 4096,
         top_p: 1,
         frequency_penalty: 0,
+        online_search: false
     })
     // 基础消息历史（不包含system消息）
     const baseMessageHistory = ref([])
+
+    const onlineSearchResponse = ref('')
 
     // 使用计算属性，自动包含system消息
     const sendMessageHistory = computed(() => [
@@ -160,11 +163,18 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
                         }
                     }
                 }
-                else if (chunk.startsWith('event:end')) {
+                else if (chunk.startsWith('event:search')) {
                     const lines = chunk.split('\n')
                     const jsonStr = lines[1].replace('data:', ''); // 去掉 "data:" 前缀
                     const data = JSON.parse(jsonStr);
-
+                    baseMessageHistory.value.push({
+                        role: 'search',
+                        content: data.search_result,
+                        model: AIConfig.model,
+                        message_id: data.message_id
+                    })
+                }
+                else if (chunk.startsWith('event:end')) {
                     isReceiving.value = false
                 }
 
@@ -327,7 +337,8 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
         modelList,
         isUploading,
         uploadingFiles,
-        deleteFile
+        deleteFile,
+        onlineSearchResponse
     }
 }, {
     persist: {
