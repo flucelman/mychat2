@@ -169,7 +169,7 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
                     const data = JSON.parse(jsonStr);
                     baseMessageHistory.value.push({
                         role: 'search',
-                        search_result: data.search_result,
+                        content: data.search_result,
                         model: AIConfig.model,
                         message_id: data.message_id
                     })

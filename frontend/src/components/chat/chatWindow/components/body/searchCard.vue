@@ -1,11 +1,10 @@
 <template>
     <div class="search-card">
         <div class="results-container">
-            <div v-for="item in searchResult" :key="item.name" class="result-item">
+            <div v-for="item in searchResult" :key="item.name" class="result-item" @click="openSearchResult(item)">
                 <div class="result-header">
                     <div class="site-info">
                         <img v-if="item.siteIcon" :src="item.siteIcon" class="site-icon" alt="网站图标" />
-                        <div v-else class="site-icon-placeholder"></div>
                         <span class="site-name">{{ item.siteName }}</span>
                     </div>
                     <div class="date-info">{{ item.dateLastCrawled }}</div>
@@ -46,6 +45,10 @@ watch(() => props.search, (newValue) => {
     parseSearchResult()
 }, { immediate: true })
 
+const openSearchResult = (item) => {
+    window.open(item.url, '_blank')
+}
+
 </script>
 
 <style scoped>
@@ -59,7 +62,6 @@ watch(() => props.search, (newValue) => {
     flex-wrap: wrap;
     gap: 16px;
     justify-content: flex-start;
-    max-width: 1000px;
     margin: 0 auto;
 }
 
@@ -69,7 +71,6 @@ watch(() => props.search, (newValue) => {
     padding: 16px;
     box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
     transition: all 0.3s ease;
-    max-width: 280px;
     flex-grow: 1;
 }
 

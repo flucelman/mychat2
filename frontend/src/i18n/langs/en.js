@@ -57,5 +57,7 @@ export default {
         delete: 'Delete',
         uploadSuccess: 'files uploaded successfully',
         uploadFailed: 'upload failed',
+        rememberMe: 'Remember me',
+        searchResult: 'Online search results🔎',
     }
 }

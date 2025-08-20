@@ -42,7 +42,7 @@
                         {{ group.search.model }}
                     </div>
                 </div>
-                <div class="message-content" @click="openSearchDrawer(group.search.content)">联网搜索结果</div>
+                <div class="search-result" @click="openSearchDrawer(group.search.content)">{{ $t('message.searchResult') }}</div>
             </div>
         </div>
         <div v-if="chatConfigStore.isReceiving == true" class="message-item assistant">
@@ -57,7 +57,7 @@
         </div>
         
         <!-- 统一的搜索结果抽屉 -->
-        <el-drawer v-model="searchDrawer" :title="$t('message.onlineSearch')" :direction="'rtl'">
+        <el-drawer v-model="searchDrawer" :title="$t('message.onlineSearch')" :direction="'rtl' " class="search-drawer">
             <search-card :search="currentSearchContent" />
         </el-drawer>
     </div>
@@ -174,7 +174,7 @@ const groupedMessages = computed(() => {
 })
 </script>
 
-<style scoped>
+<style >
 .model-icon {
     width: 25px;
     height: 25px;
@@ -288,5 +288,23 @@ const groupedMessages = computed(() => {
     align-items: center;
     font-size: 12px;
     color: var(--secondary-text);
+}
+
+.search-drawer {
+    background-color: var(--secondary-background);
+    width: 350px !important;
+}
+@media (max-width: 768px) {
+    .search-drawer {
+        width: 80vw !important;
+    }
+}
+
+.search-result {
+    color: var(--secondary-text);
+    font-size: 14px;
+    cursor: pointer;
+    margin-top: 10px;
+    padding-left: 10px;
 }
 </style>
