@@ -7,14 +7,19 @@
                     v-if="group.message.role == 'user' && (groupIndex === 0 || groupedMessages[groupIndex - 1].type !== 'files')">
                     {{ globalSettingStore.userInfo.username }}</div>
                 <div class="message-model assistant"
-                    v-if="group.message.role == 'assistant' && (groupIndex === 0 || groupedMessages[groupIndex - 1].type !== 'search')">
+                    v-if="group.message.role == 'assistant'">
                     <img :src="API.backend_url + '/assets/icons/modelLogo/' + chatConfigStore.modelList.find(item => item.name == group.message.model)?.logo"
                         class="model-icon" />
                     <div class="model-name-text" v-if="group.message.role != 'search'">
                         {{ group.message.model }}
                     </div>
                 </div>
-                <div class="message-content">{{ group.message.content }}</div>
+                <div class="message-content">
+                    <MarkdownView :content="group.message.content" />
+                    <div class="content-icons-wrapper">
+                        <ContentIcon :role="group.message.role" :content="group.message.content" />
+                    </div>
+                </div>
             </div>
             <!-- 文件消息组 -->
             <div v-else-if="group.type == 'files'" class="message-item file">
@@ -45,6 +50,7 @@
                 <div class="search-result" @click="openSearchDrawer(group.search.content)">{{ $t('message.searchResult') }}</div>
             </div>
         </div>
+        <!-- 流式展示助手消息 -->
         <div v-if="chatConfigStore.isReceiving == true" class="message-item assistant">
             <div class="message-model assistant">
                 <img :src="API.backend_url + '/assets/icons/modelLogo/' + chatConfigStore.modelList.find(item => item.name == chatConfigStore.AIConfig.model)?.logo"
@@ -53,7 +59,9 @@
                     {{ chatConfigStore.AIConfig.model }}
                 </div>
             </div>
-            <div class="message-content">{{ chatConfigStore.instantAssistantMessage }}</div>
+            <div class="message-content">
+                <MarkdownView :content="chatConfigStore.instantAssistantMessage" />
+            </div>
         </div>
         
         <!-- 统一的搜索结果抽屉 -->
@@ -76,6 +84,8 @@ import excelIcon from '@/assets/icons/excel.svg?url'
 import fileIcon from '@/assets/icons/file.svg?url'
 import videoIcon from '@/assets/icons/video.svg?url'
 import SearchCard from './body/searchCard.vue'
+import MarkdownView from './body/markdownView.vue'
+import ContentIcon from './body/contentIcon.vue'
 
 const searchDrawer = ref(false)
 const currentSearchContent = ref('')
@@ -89,6 +99,8 @@ const openSearchDrawer = (content) => {
         searchDrawer.value = true
     })
 }
+
+
 
 // 获取文件类型
 const getFileType = (fileName) => {
@@ -175,6 +187,7 @@ const groupedMessages = computed(() => {
 </script>
 
 <style >
+
 .model-icon {
     width: 25px;
     height: 25px;
@@ -191,6 +204,8 @@ const groupedMessages = computed(() => {
     padding: 10px;
     box-sizing: border-box;
 }
+
+
 
 .message-container {
     display: flex;
@@ -213,6 +228,7 @@ const groupedMessages = computed(() => {
 
 .message-item.search {
     align-self: flex-start;
+    margin-bottom: 10px;
 }
 
 .message-model {
@@ -232,6 +248,17 @@ const groupedMessages = computed(() => {
     padding: 10px;
     border-radius: 10px;
 }
+
+/* 用户消息的图标hover效果（通过包装器控制） */
+.message-item.user .content-icons-wrapper {
+    opacity: 0;
+}
+
+.message-item.user:hover .content-icons-wrapper {
+    opacity: 1;
+}
+
+
 
 .username {
     align-self: flex-end;
@@ -278,7 +305,7 @@ const groupedMessages = computed(() => {
 
 .file-name {
     font-size: 14px;
-    color: var(--primary-text);
+    color: var(--text-color);
 }
 
 .file-detail {
@@ -299,12 +326,58 @@ const groupedMessages = computed(() => {
         width: 80vw !important;
     }
 }
-
+@media (min-width: 1024px) {
+    .body-container {
+        width: 70%;
+        margin: 0 auto;
+    }
+}
 .search-result {
     color: var(--secondary-text);
     font-size: 14px;
     cursor: pointer;
     margin-top: 10px;
-    padding-left: 10px;
+    padding-left: 40px;
 }
+
+/* 美化 body-container 滚动条 */
+.body-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.body-container::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 4px;
+}
+
+.body-container::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.body-container::-webkit-scrollbar-thumb:hover {
+  background: var(--secondary-text);
+}
+
+/* Firefox 滚动条样式 */
+.body-container {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) transparent;
+}
+
+/* 隐藏滚动条但保留滚动（Chrome / Edge / Safari）*/
+.search-drawer .el-drawer__body::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+/* 隐藏 Firefox 滚动条 */
+.search-drawer .el-drawer__body {
+  scrollbar-width: none;
+  -ms-overflow-style: none; /* IE 10+ */
+}
+
+
+
 </style>

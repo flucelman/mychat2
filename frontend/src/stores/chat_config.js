@@ -319,6 +319,7 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
         showDrawer,
         openEyes,
         chatId,
+        systemPrompt,
         AIConfig,
         sendUserMessage,
         userMessage,
@@ -342,6 +343,6 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
     }
 }, {
     persist: {
-        pick: ['showDrawer', 'openEyes', 'AIConfig']  // 只持久化 showDrawer 字段
+        pick: ['showDrawer', 'openEyes', 'AIConfig', 'systemPrompt']  // 只持久化 showDrawer 字段
     }
 })

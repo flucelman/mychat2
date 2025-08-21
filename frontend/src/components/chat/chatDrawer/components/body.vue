@@ -14,7 +14,6 @@
                 </div>
             </el-popover>
         </div>
-
     </div>
 </template>
 
@@ -37,6 +36,20 @@ const getChatHistory = async (chat_id) => {
 .drawer-body {
     overflow-y: auto;
     padding: 10px;
+}
+
+.drawer-body::-webkit-scrollbar {
+    width: 5px; /* 滚动条宽度 */
+}
+
+.drawer-body::-webkit-scrollbar-track {
+    background: var(--secondary-background); /* 滚动条轨道背景 */
+    border-radius: 10px;
+}
+
+.drawer-body::-webkit-scrollbar-thumb {
+    background: var(--tertiary-background); /* 滚动条滑块颜色 */
+    border-radius: 10px;
 }
 
 .drawer-body-item {

@@ -59,5 +59,10 @@ export default {
         uploadFailed: 'upload failed',
         rememberMe: 'Remember me',
         searchResult: 'Online search results🔎',
+        uploading: 'Uploading...',
+        copyPlainText: 'Copy Plain Text',
+        copyMarkdown: 'Copy Markdown',
+        copySuccess: 'Copied successfully',
+        copyFailed: 'Copy failed',
     }
 }

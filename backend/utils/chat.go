@@ -22,10 +22,21 @@ func SaveDB(MessageID, userID, chatID, Role, Content, Model string) string {
 	if err := global.DB.Create(&message).Error; err != nil {
 		return err.Error()
 	}
-	chatHistory := models.ChatHistory{}
-	global.DB.Model(&models.ChatHistory{}).Where("chat_id = ?", chatID).First(&chatHistory)
-	chatHistory.UpdatedAt = time.Now()
-	global.DB.Save(&chatHistory)
+
+	// 只更新已存在的聊天记录的 UpdatedAt 字段
+	// 使用 Updates 方法直接更新，避免先查询再保存的问题
+	result := global.DB.Model(&models.ChatHistory{}).
+		Where("chat_id = ?", chatID).
+		Update("updated_at", time.Now())
+
+	// 如果没有找到记录，不需要报错，因为可能是第一次创建聊天时的system消息
+	// ChatHistory 会在 controller/chat.go 的 AddChatMessage 函数中创建
+	if result.Error != nil {
+		// 记录错误但不返回错误，因为消息已经保存成功
+		// 可以考虑记录日志
+		return "success"
+	}
+
 	return "success"
 }
 

@@ -54,11 +54,11 @@ const chatConfigStore = useChatConfigStore()
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    gap: 10px;
+    gap: 8px;
     flex-direction: column;
     border: 1px solid var(--border-color);
     border-radius: 12px;
-    padding: 6px 16px 16px 16px;
+    padding: 2px 16px 16px 16px;
     box-shadow: var(--shadow-color);
     transition: box-shadow 0.3s ease, transform 0.2s ease;
 }

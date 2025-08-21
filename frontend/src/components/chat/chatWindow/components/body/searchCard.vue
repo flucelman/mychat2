@@ -7,7 +7,7 @@
                         <img v-if="item.siteIcon" :src="item.siteIcon" class="site-icon" alt="网站图标" />
                         <span class="site-name">{{ item.siteName }}</span>
                     </div>
-                    <div class="date-info">{{ item.dateLastCrawled }}</div>
+                    <div class="date-info">{{ item.dateLastCrawled.split('T')[0] }}</div>
                 </div>
                 <h3 class="result-title">{{ item.name }}</h3>
                 <p class="result-snippet">{{ item.snippet }}</p>
@@ -66,7 +66,7 @@ const openSearchResult = (item) => {
 }
 
 .result-item {
-    background-color: var(--el-bg-color);
+    background-color: var(--background-color);
     border-radius: 8px;
     padding: 16px;
     box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
@@ -108,19 +108,16 @@ const openSearchResult = (item) => {
 
 .site-name {
     font-size: 12px;
-    color: var(--el-text-color-secondary);
 }
 
 .date-info {
     font-size: 12px;
-    color: var(--el-text-color-secondary);
 }
 
 .result-title {
     font-size: 16px;
     font-weight: 600;
     margin: 8px 0;
-    color: var(--el-text-color-primary);
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
@@ -129,14 +126,10 @@ const openSearchResult = (item) => {
 
 .result-snippet {
     font-size: 14px;
-    color: var(--el-text-color-regular);
     line-height: 1.5;
     margin: 0;
     overflow: hidden;
     text-overflow: ellipsis;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
 }
 
 @media (max-width: 600px) {

@@ -9,22 +9,17 @@
                         <div class="model-option">
                             <img :src="API.backend_url + '/assets/icons/modelLogo/' + chatConfigStore.modelList.find(item => item.name == model.name)?.logo" class="model-icon" />
                             <span class="model-show">{{ model.name }}</span>
-                            <div class="model-abilities">
-                                <div class="ability-icons">
-                                    <span 
-                                        v-for="ability in parseAbilities(model.ability)" 
-                                        :key="ability"
-                                        class="ability-tag"
-                                        :class="`ability-${ability}`"
-                                    >
-                                        <span class="ability-icon">{{ getAbilityIcon(ability) }}</span>
-                                    </span>
-                                </div>
-                            </div>
                             <span class="model-show model-price">{{ model.price }}</span>
                         </div>
                     </el-option>
                 </el-select>
+            </div>
+        </div>
+        <!-- system prompt -->
+        <div class="settings-item">
+            <div class="settings-item-title">system prompt</div>
+            <div class="settings-item-content">
+                <el-input v-model="chatConfigStore.systemPrompt" type="textarea" :rows="4" />
             </div>
         </div>
         <!-- 模型温度 -->
@@ -90,14 +85,14 @@
         <!-- 语言 -->
         <div class="settings-item">
             <div class="settings-item-title">{{ $t('message.language') }}</div>
-            <div class="settings-item-content">
+            <div style="width: 100%;display: flex;justify-content: center;align-items: center;">
                 <ChangeLangs />
             </div>
         </div>
         <!-- 主题 -->
         <div class="settings-item">
             <div class="settings-item-title">{{ $t('message.theme') }}</div>
-            <div class="settings-item-content">
+            <div style="width: 100%;display: flex;justify-content: center;align-items: center;">
                 <ChangeTheme />
             </div>
         </div>
@@ -114,35 +109,7 @@ import { API } from '@/router/api'
 
 const chatConfigStore = useChatConfigStore()
 
-// 解析ability字符串，按逗号分割并过滤空字符串
-const parseAbilities = (abilityString) => {
-    if (!abilityString || abilityString.trim() === '') {
-        return []
-    }
-    return abilityString.split(',').map(item => item.trim()).filter(item => item !== '')
-}
 
-// 获取能力对应的图标
-const getAbilityIcon = (ability) => {
-    const iconMap = {
-        'image': '🖼️',
-        'audio': '🎵',
-        'video': '🎬',
-        'text': '📝'
-    }
-    return iconMap[ability] || '⚡'
-}
-
-// 获取能力对应的显示文本
-const getAbilityText = (ability) => {
-    const textMap = {
-        'image': t('message.image'),
-        'audio': t('message.audio'), 
-        'video': t('message.video'),
-        'text': t('message.text')
-    }
-    return textMap[ability] || ability
-}
 </script>
 
 <style scoped>
@@ -159,7 +126,10 @@ const getAbilityText = (ability) => {
     flex-direction: column;
     gap: 16px;
     overflow-y: auto;
+    height: 80vh;
+    scrollbar-width: none;
 }
+
 
 .settings-item {
     display: flex;

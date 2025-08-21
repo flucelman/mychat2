@@ -199,6 +199,11 @@ func AddChatMessage(ctx *gin.Context) {
 	if userCount == 1 {
 		// 1. 创建新的聊天记录
 		fmt.Println("创建新的聊天记录", input.MessageHistory)
+		// 保存system prompt信息到数据库
+		systemPrompt := input.MessageHistory[0]["content"]
+		systemPromptID := uuid.New().String()
+		utils.SaveDB(systemPromptID, userID, input.ChatID, "system", systemPrompt.(string), "system")
+		input.MessageHistory[0]["message_id"] = systemPromptID
 		chat := models.ChatHistory{
 			ChatID: input.ChatID,
 			UserID: userID,

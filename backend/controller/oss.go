@@ -16,7 +16,12 @@ import (
 
 // 根据文件后缀获取文件类型
 func getFileType(filename string) string {
-	suffix := strings.ToLower(filename[strings.LastIndex(filename, "."):])
+	// 如果文件名没有后缀或点在末尾，返回默认类型 "file"
+	idx := strings.LastIndex(filename, ".")
+	if idx == -1 || idx == len(filename)-1 {
+		return "other"
+	}
+	suffix := strings.ToLower(filename[idx:])
 	switch suffix {
 	case ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp":
 		return "image"
@@ -27,7 +32,7 @@ func getFileType(filename string) string {
 	case ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".pdf", ".txt", ".md", ".html":
 		return "file"
 	default:
-		return "file"
+		return "other"
 	}
 }
 

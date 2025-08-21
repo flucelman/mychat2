@@ -59,5 +59,10 @@ export default {
         uploadFailed: '上传失败',
         rememberMe: '记住我',
         searchResult: '联网搜索结果🔎',
+        uploading: '上传中...',
+        copyPlainText: '复制原始文本',
+        copyMarkdown: '复制Markdown',
+        copySuccess: '复制成功',
+        copyFailed: '复制失败',
     }
 }
