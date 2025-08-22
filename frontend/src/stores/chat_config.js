@@ -315,6 +315,19 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
         })
     }
 
+    // 删除消息
+    const deleteMessage = async (message_id) => {
+        baseMessageHistory.value = baseMessageHistory.value.filter(item => item.message_id != message_id)
+        const res = await http.post(API.backend_url + '/api/chat/deleteSingleMessage', {
+            message_id: message_id
+        })
+        if (res.data.success) {
+            ElMessage.success(t('message.deleteSuccess'))
+        } else {
+            ElMessage.error(t('message.deleteFailed'))
+        }
+    }
+
     return {
         showDrawer,
         openEyes,
@@ -339,7 +352,9 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
         isUploading,
         uploadingFiles,
         deleteFile,
-        onlineSearchResponse
+        onlineSearchResponse,
+        deleteMessage,
+        resendMessage
     }
 }, {
     persist: {

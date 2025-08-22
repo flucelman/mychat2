@@ -17,7 +17,7 @@
                 <div class="message-content">
                     <MarkdownView :content="group.message.content" />
                     <div class="content-icons-wrapper">
-                        <ContentIcon :role="group.message.role" :content="group.message.content" />
+                        <ContentIcon :message="group.message" />
                     </div>
                 </div>
             </div>

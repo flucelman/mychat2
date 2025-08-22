@@ -68,7 +68,7 @@ const login = async () => {
             globalSettingStore.isLogin = true
             globalSettingStore.userToken = data.token
             chatConfigStore.getChatHistory()
-            ElMessage.success(data.message || t('message.loginSuccess'))
+            ElMessage.success(t('message.loginSuccess'))
             if (globalSettingStore.rememberMe) {
                 localStorage.setItem('email', email.value)
                 localStorage.setItem('password', password.value)
@@ -78,7 +78,7 @@ const login = async () => {
             }
         } else {
             // 登录失败，显示后端返回的具体错误信息
-            ElMessage.error(data.message || t('message.loginFailed'))
+            ElMessage.error(t('message.loginFailed'))
         }
     } catch (err) {
         console.error('Login error:', err)

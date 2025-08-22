@@ -1,15 +1,16 @@
 <template>
-    <div class="content-icon-container" :class="{ 'user-icons': role == 'user', 'assistant-icons': role == 'assistant' }">
-        <deleteIcon class="content-icon"/>
-        <refreshIcon class="content-icon" v-if="role == 'assistant'"/>
+    <div class="content-icon-container"
+        :class="{ 'user-icons': message.role == 'user', 'assistant-icons': message.role == 'assistant' }">
+        <deleteIcon class="content-icon" @click="deleteMessage" />
+        <refreshIcon class="content-icon" v-if="message.role == 'assistant'" />
         <el-dropdown @command="handleCopyCommand" trigger="click" :teleported="false">
-            <copyIcon class="content-icon"/>
+            <copyIcon class="content-icon" />
             <template #dropdown>
                 <el-dropdown-menu>
-                    <el-dropdown-item :command="{ type: 'plain', content: content }">
+                    <el-dropdown-item :command="{ type: 'plain', content: message.content }">
                         {{ $t('message.copyPlainText') }}
                     </el-dropdown-item>
-                    <el-dropdown-item :command="{ type: 'markdown', content: content }">
+                    <el-dropdown-item :command="{ type: 'markdown', content: message.content }">
                         {{ $t('message.copyMarkdown') }}
                     </el-dropdown-item>
                 </el-dropdown-menu>
@@ -20,21 +21,22 @@
 
 <script setup>
 import { useI18n } from 'vue-i18n'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import copyIcon from '@/assets/icons/复制.svg'
 import deleteIcon from '@/assets/icons/删除.svg'
 import refreshIcon from '@/assets/icons/刷新.svg'
+import { http } from '@/utils/http/client'
+import { API } from '@/router/api'
+import { useChatConfigStore } from '@/stores/chat_config'
 
 const { t: $t } = useI18n()
 
+const chatConfigStore = useChatConfigStore()
+
 // 定义组件属性
 const props = defineProps({
-    role: {
-        type: String,
-        required: true
-    },
-    content: {
-        type: String,
+    message: {
+        type: Object,
         required: true
     }
 })
@@ -43,7 +45,7 @@ const props = defineProps({
 const handleCopyCommand = (command) => {
     const { type, content } = command
     let textToCopy = content
-    
+
     if (type === 'plain') {
         // 复制原始文本（去除markdown格式）
         textToCopy = convertMarkdownToPlainText(content)
@@ -51,7 +53,7 @@ const handleCopyCommand = (command) => {
         // 复制markdown文本（保持原格式）
         textToCopy = content
     }
-    
+
     copyToClipboard(textToCopy)
 }
 
@@ -91,6 +93,31 @@ const convertMarkdownToPlainText = (markdown) => {
         // 清理多余的空行
         .replace(/\n\s*\n/g, '\n')
         .trim()
+}
+
+// 删除消息
+const deleteMessage = () => {
+    console.log('删除消息', props.message.message_id)
+    ElMessageBox.confirm($t('message.deleteMessage'), $t('message.confirmTitle'), {
+        confirmButtonText: $t('message.confirm'),
+        cancelButtonText: $t('message.cancel'),
+        type: 'warning',
+    }).then(async () => {
+        try {
+            // 删除chatconfigStore中的消息
+            chatConfigStore.deleteMessage(props.message.message_id)
+            const res = await http.post(API.backend_url + '/api/chat/deleteSingleMessage', {
+                message_id: props.message.message_id
+            })
+            if (res.data.success) {
+                ElMessage.success($t('message.deleteSuccess'))
+            } else {
+                ElMessage.error($t('message.deleteFailed'))
+            }
+        } catch (err) {
+            ElMessage.error($t('message.deleteFailed'))
+        }
+    })
 }
 </script>
 

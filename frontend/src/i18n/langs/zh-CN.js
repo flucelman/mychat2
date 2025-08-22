@@ -64,5 +64,8 @@ export default {
         copyMarkdown: '复制Markdown',
         copySuccess: '复制成功',
         copyFailed: '复制失败',
+        deleteMessage: '确定要删除该消息吗？',
+        deleteSuccess: '消息已删除',
+        deleteFailed: '消息删除失败',
     }
 }

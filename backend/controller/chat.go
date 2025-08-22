@@ -395,3 +395,20 @@ func DeleteSingleHistory(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, gin.H{"success": true, "message": "聊天记录已删除"})
 }
+
+// 删除单个消息
+func DeleteSingleMessage(ctx *gin.Context) {
+	userID := ctx.GetString("userID")
+	var input struct {
+		MessageID string `json:"message_id"`
+	}
+	if err := ctx.ShouldBindJSON(&input); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if err := global.DB.Where("user_id = ?", userID).Where("message_id = ?", input.MessageID).Delete(&models.Message{}).Error; err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"success": true, "message": "消息已删除"})
+}

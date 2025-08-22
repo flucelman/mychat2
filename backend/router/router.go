@@ -48,6 +48,7 @@ func SetupRouter() *gin.Engine {
 			chat.POST("/addChatMessage", controller.AddChatMessage)
 			chat.DELETE("/deleteAllHistory", controller.DeleteAllHistory)
 			chat.POST("/deleteSingleHistory", controller.DeleteSingleHistory)
+			chat.POST("/deleteSingleMessage", controller.DeleteSingleMessage)
 		}
 		oss := api.Group("/oss")
 		{

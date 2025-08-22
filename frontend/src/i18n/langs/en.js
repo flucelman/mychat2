@@ -64,5 +64,8 @@ export default {
         copyMarkdown: 'Copy Markdown',
         copySuccess: 'Copied successfully',
         copyFailed: 'Copy failed',
+        deleteMessage: 'Are you sure you want to delete this message?',
+        deleteSuccess: 'Message deleted successfully',
+        deleteFailed: 'Message deletion failed',
     }
 }
