@@ -67,5 +67,7 @@ export default {
         deleteMessage: '确定要删除该消息吗？',
         deleteSuccess: '消息已删除',
         deleteFailed: '消息删除失败',
+        resendSuccess: '消息重发成功',
+        resendFailed: '消息重发失败',
     }
 }

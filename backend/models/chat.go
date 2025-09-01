@@ -6,7 +6,7 @@ import "time"
 type ChatHistory struct {
 	ChatID    string    `json:"chat_id" gorm:"primaryKey;type:varchar(64)"`
 	UserID    string    `json:"user_id" gorm:"type:varchar(64);index;not null"`
-	Title     string    `json:"title" gorm:"type:varchar(32)"`
+	Title     string    `json:"title" gorm:"type:varchar(64)"`
 	UpdatedAt time.Time `json:"updated_at" gorm:"autoUpdateTime"`
 }
 

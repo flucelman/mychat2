@@ -278,7 +278,54 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
             }
             ElMessage.success('删除成功')
         } catch (error) {
-            console.error('删除失败:', error)
+            console.error('error:删除失败:', error)
+            ElMessage.error(t('message.networkError'))
+        }
+    }
+    
+    // 重发消息
+    const resendMessage = async (message_id) => {
+        try {
+            // 找到要重发的消息在数组中的索引
+            const messageIndex = baseMessageHistory.value.findIndex(item => item.message_id === message_id)
+            
+            if (messageIndex === -1) {
+                console.error('error:未找到要重发的消息')
+                ElMessage.error('未找到要重发的消息')
+                return
+            }
+            
+            // 获取要重发的消息内容
+            const messageToResend = baseMessageHistory.value[messageIndex - 1]
+            
+
+            // 调用后端接口删除消息
+            const response = await http.post(API.backend_url + '/api/chat/resendMessage', {
+                chat_id: chatId.value,
+                message_id: message_id
+            })
+
+            if (response.data.success) {             
+                // 前端也需要同步删除这些消息
+                // 找到要重发消息的上一个消息的索引
+                let deleteStartIndex = messageIndex
+                if (messageIndex > 0) {
+                    deleteStartIndex = messageIndex - 1 // 包括上一个消息
+                }
+                
+                // 删除前端数组中对应的消息
+                baseMessageHistory.value = baseMessageHistory.value.slice(0, deleteStartIndex)
+                
+                // 设置到输入框并重新发送
+                userMessage.value = messageToResend.content
+                sendUserMessage()
+                
+                ElMessage.success(t('message.resendSuccess'))
+            } else {
+                ElMessage.error(t('message.resendFailed'))
+            }
+        } catch (error) {
+            console.error('error:', error)
             ElMessage.error(t('message.networkError'))
         }
     }
@@ -316,7 +363,7 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
     }
 
     // 删除消息
-    const deleteMessage = async (message_id) => {
+    const deleteSingleMessage = async (message_id) => {
         baseMessageHistory.value = baseMessageHistory.value.filter(item => item.message_id != message_id)
         const res = await http.post(API.backend_url + '/api/chat/deleteSingleMessage', {
             message_id: message_id
@@ -353,8 +400,8 @@ export const useChatConfigStore = defineStore('chatConfig', () => {
         uploadingFiles,
         deleteFile,
         onlineSearchResponse,
-        deleteMessage,
-        resendMessage
+        deleteSingleMessage,
+        resendMessage,
     }
 }, {
     persist: {

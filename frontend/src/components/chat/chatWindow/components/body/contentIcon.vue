@@ -2,7 +2,7 @@
     <div class="content-icon-container"
         :class="{ 'user-icons': message.role == 'user', 'assistant-icons': message.role == 'assistant' }">
         <deleteIcon class="content-icon" @click="deleteMessage" />
-        <refreshIcon class="content-icon" v-if="message.role == 'assistant'" />
+        <refreshIcon class="content-icon" v-if="message.role == 'assistant'" @click="chatConfigStore.resendMessage(props.message.message_id)" />
         <el-dropdown @command="handleCopyCommand" trigger="click" :teleported="false">
             <copyIcon class="content-icon" />
             <template #dropdown>
@@ -104,16 +104,8 @@ const deleteMessage = () => {
         type: 'warning',
     }).then(async () => {
         try {
-            // 删除chatconfigStore中的消息
-            chatConfigStore.deleteMessage(props.message.message_id)
-            const res = await http.post(API.backend_url + '/api/chat/deleteSingleMessage', {
-                message_id: props.message.message_id
-            })
-            if (res.data.success) {
-                ElMessage.success($t('message.deleteSuccess'))
-            } else {
-                ElMessage.error($t('message.deleteFailed'))
-            }
+            // 只调用store中的deleteSingleMessage，它已经包含了HTTP请求和UI反馈
+            await chatConfigStore.deleteSingleMessage(props.message.message_id)
         } catch (err) {
             ElMessage.error($t('message.deleteFailed'))
         }

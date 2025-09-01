@@ -52,6 +52,7 @@
         </div>
         <!-- 流式展示助手消息 -->
         <div v-if="chatConfigStore.isReceiving == true" class="message-item assistant">
+
             <div class="message-model assistant">
                 <img :src="API.backend_url + '/assets/icons/modelLogo/' + chatConfigStore.modelList.find(item => item.name == chatConfigStore.AIConfig.model)?.logo"
                     class="model-icon" />
@@ -60,7 +61,16 @@
                 </div>
             </div>
             <div class="message-content">
-                <MarkdownView :content="chatConfigStore.instantAssistantMessage" />
+                <div v-if="chatConfigStore.instantAssistantMessage == ''" class="loading-container">
+                    <Vue3Lottie 
+                        :animationData="AILoadingAnimation" 
+                        :height="60" 
+                        :width="60" 
+                        :loop="true" 
+                        :autoplay="true"
+                    />
+                </div>
+                <MarkdownView v-else :content="chatConfigStore.instantAssistantMessage" />
             </div>
         </div>
         
@@ -86,6 +96,8 @@ import videoIcon from '@/assets/icons/video.svg?url'
 import SearchCard from './body/searchCard.vue'
 import MarkdownView from './body/markdownView.vue'
 import ContentIcon from './body/contentIcon.vue'
+import { Vue3Lottie } from 'vue3-lottie'
+import AILoadingAnimation from '@/assets/lottie/AI_loading.json'
 
 const searchDrawer = ref(false)
 const currentSearchContent = ref('')
@@ -173,6 +185,12 @@ const groupedMessages = computed(() => {
                 type: 'search',
                 search: message
             })
+        }else if (message.role === 'system') {
+            currentFileGroup = null
+            groups.push({
+                type: 'system',
+                system: message
+            })
         } else {
             currentFileGroup = null
             groups.push({
@@ -247,6 +265,10 @@ const groupedMessages = computed(() => {
 .message-content {
     padding: 10px;
     border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
 }
 
 /* 用户消息的图标hover效果（通过包装器控制） */
@@ -376,6 +398,14 @@ const groupedMessages = computed(() => {
 .search-drawer .el-drawer__body {
   scrollbar-width: none;
   -ms-overflow-style: none; /* IE 10+ */
+}
+
+/* 加载动画容器样式 */
+.loading-container {
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  padding: 10px 0;
 }
 
 

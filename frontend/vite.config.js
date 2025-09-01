@@ -30,7 +30,7 @@ export default defineConfig({
     })
   ],
   server: {
-    host: '0.0.0.0', // 自定义主机名
+    host: 'localhost', // 自定义主机名
     port: 9000, // 自定义端口
     strictPort: true,
     cors: true,
@@ -38,7 +38,7 @@ export default defineConfig({
     // hmr: false,
     hmr: {
       port: 9001,
-      host: '127.0.0.1'
+      host: 'localhost'
     },
    // 检测到/api则代理到后端
     proxy: {

@@ -38,7 +38,7 @@ onMounted(() => {
 }
 
 .drawer-footer {
-    min-height: 80px;
+    min-height: 60px;
 }
 
 

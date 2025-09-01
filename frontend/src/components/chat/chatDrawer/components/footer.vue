@@ -40,7 +40,6 @@ const userDialogVisible = ref(false)
 
 <style scoped>
 .drawer-footer {
-    padding: 20px;
     border-top: 1px solid var(--border-color);
     display: flex;
     align-items: center;

@@ -67,5 +67,7 @@ export default {
         deleteMessage: 'Are you sure you want to delete this message?',
         deleteSuccess: 'Message deleted successfully',
         deleteFailed: 'Message deletion failed',
+        resendSuccess: 'Message resend successfully',
+        resendFailed: 'Message resend failed',
     }
 }

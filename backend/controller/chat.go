@@ -14,6 +14,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 /*
@@ -195,44 +196,57 @@ func AddChatMessage(ctx *gin.Context) {
 			userCount++
 		}
 	}
-	// 如果只有一个user消息，则创建新的聊天记录
+	// 如果只有一个user消息，则检查是否需要创建新的聊天记录
 	if userCount == 1 {
-		// 1. 创建新的聊天记录
-		fmt.Println("创建新的聊天记录", input.MessageHistory)
-		// 保存system prompt信息到数据库
-		systemPrompt := input.MessageHistory[0]["content"]
-		systemPromptID := uuid.New().String()
-		utils.SaveDB(systemPromptID, userID, input.ChatID, "system", systemPrompt.(string), "system")
-		input.MessageHistory[0]["message_id"] = systemPromptID
-		chat := models.ChatHistory{
-			ChatID: input.ChatID,
-			UserID: userID,
-			Title: func() string {
-				// 安全检查：确保MessageHistory有足够的元素
-				if len(input.MessageHistory) < 2 {
-					return "新对话"
-				}
+		// 先检查聊天记录是否已存在
+		var existingChat models.ChatHistory
+		err := global.DB.Where("chat_id = ? AND user_id = ?", input.ChatID, userID).First(&existingChat).Error
 
-				// 找到第一条用户消息作为标题
-				for _, msg := range input.MessageHistory {
-					if role, ok := msg["role"].(string); ok && role == "user" {
-						if content, ok := msg["content"].(string); ok && content != "" {
-							if len(content) <= 30 {
-								return content
+		if err != nil && err == gorm.ErrRecordNotFound {
+			// 聊天记录不存在，创建新的聊天记录
+			fmt.Println("创建新的聊天记录", input.MessageHistory)
+			// 保存system prompt信息到数据库
+			systemPrompt := input.MessageHistory[0]["content"]
+			systemPromptID := uuid.New().String()
+			utils.SaveDB(systemPromptID, userID, input.ChatID, "system", systemPrompt.(string), "system")
+			input.MessageHistory[0]["message_id"] = systemPromptID
+			chat := models.ChatHistory{
+				ChatID: input.ChatID,
+				UserID: userID,
+				Title: func() string {
+					// 安全检查：确保MessageHistory有足够的元素
+					if len(input.MessageHistory) < 2 {
+						return "新对话"
+					}
+
+					// 找到第一条用户消息作为标题
+					for _, msg := range input.MessageHistory {
+						if role, ok := msg["role"].(string); ok && role == "user" {
+							if content, ok := msg["content"].(string); ok && content != "" {
+								if len(content) <= 30 {
+									return content
+								}
+								return content[:28] + "..."
 							}
-							return content[:30] + "..."
 						}
 					}
-				}
 
-				// 如果都失败了，返回默认标题
-				fmt.Println("都失败了，返回默认标题")
-				return "新对话"
-			}(),
-		}
-		if err := global.DB.Create(&chat).Error; err != nil {
+					// 如果都失败了，返回默认标题
+					fmt.Println("都失败了，返回默认标题")
+					return "新对话"
+				}(),
+			}
+			if err := global.DB.Create(&chat).Error; err != nil {
+				ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+		} else if err != nil {
+			// 其他数据库错误
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
+		} else {
+			// 聊天记录已存在，不需要创建
+			fmt.Println("聊天记录已存在，重发消息")
 		}
 	}
 	// 2. 添加用户信息到数据库
@@ -411,4 +425,81 @@ func DeleteSingleMessage(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusOK, gin.H{"success": true, "message": "消息已删除"})
+}
+
+// 重发消息
+func ResendMessage(ctx *gin.Context) {
+	userID := ctx.GetString("userID")
+	var input struct {
+		ChatID    string `json:"chat_id"`
+		MessageID string `json:"message_id"`
+	}
+	if err := ctx.ShouldBindJSON(&input); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// 1. 先查找要重发的消息
+	var targetMessage models.Message
+	if err := global.DB.Where("user_id = ? AND chat_id = ? AND message_id = ?", userID, input.ChatID, input.MessageID).First(&targetMessage).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			ctx.JSON(http.StatusNotFound, gin.H{"error": "消息不存在"})
+		} else {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
+		return
+	}
+
+	// 2. 获取该聊天下的所有消息，按创建时间排序
+	var allMessages []models.Message
+	if err := global.DB.Where("user_id = ? AND chat_id = ?", userID, input.ChatID).
+		Order("created_at ASC").Find(&allMessages).Error; err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// 3. 找到目标消息的索引位置
+	targetIndex := -1
+	for i, msg := range allMessages {
+		if msg.MessageID == input.MessageID {
+			targetIndex = i
+			break
+		}
+	}
+
+	if targetIndex == -1 {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "消息不存在"})
+		return
+	}
+
+	// 4. 确定要删除的消息范围
+	// 删除目标消息及其之后的所有消息，还要删除目标消息的上一个消息
+	deleteStartIndex := targetIndex
+	if targetIndex > 0 {
+		deleteStartIndex = targetIndex - 1 // 包括上一个消息
+	}
+
+	// 5. 收集要删除的消息ID
+	var messageIDsToDelete []string
+	for i := deleteStartIndex; i < len(allMessages); i++ {
+		messageIDsToDelete = append(messageIDsToDelete, allMessages[i].MessageID)
+	}
+
+	// 6. 批量删除消息
+	if len(messageIDsToDelete) > 0 {
+		if err := global.DB.Where("user_id = ? AND chat_id = ? AND message_id IN ?",
+			userID, input.ChatID, messageIDsToDelete).Delete(&models.Message{}).Error; err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "删除消息失败: " + err.Error()})
+			return
+		}
+		fmt.Printf("删除了 %d 条消息: %v\n", len(messageIDsToDelete), messageIDsToDelete)
+	}
+
+	// 7. 返回成功响应，包含删除的消息数量
+	ctx.JSON(http.StatusOK, gin.H{
+		"success":             true,
+		"message":             "消息已重发",
+		"deleted_count":       len(messageIDsToDelete),
+		"deleted_message_ids": messageIDsToDelete,
+	})
 }

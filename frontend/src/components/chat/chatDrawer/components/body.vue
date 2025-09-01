@@ -3,7 +3,7 @@
         <div class="drawer-body-item" v-for="item in chatConfigStore.chatHistory" :key="item.chat_id"
             @click="getChatHistory(item.chat_id)"
             :class="{ 'active': item.chat_id == chatConfigStore.chatId }">
-            <div>{{ item.title }}</div>
+            <div class="chat-title">{{ item.title }}</div>
             <el-popover placement="right" :width="180">
                 <template #reference>
                     <ThreePointsIcon class="three-points-icon" :chat_id="item.chat_id" />
@@ -109,5 +109,13 @@ const getChatHistory = async (chat_id) => {
 .delete-icon {
     width: 20px;
     height: 20px;
+}
+
+.chat-title {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-right: 10px;
 }
 </style>
