@@ -8,6 +8,8 @@ import (
 func main() {
 	// 初始化配置
 	config.InitConfig()
+	// 初始化外部服务连接
+	config.InitServices()
 	// 初始化路由
 	r := router.SetupRouter()
 	// 启动服务

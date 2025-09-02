@@ -3,6 +3,7 @@ package router
 import (
 	"backend/controller"
 	"backend/middlewares"
+	"net/http"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -19,6 +20,11 @@ func SetupRouter() *gin.Engine {
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
+
+	// 健康检查端点
+	r.GET("/health", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"status": "ok"})
+	})
 
 	// 静态资源映射：使前端可通过 /assets 访问后端的 ./assets 目录
 	r.Static("/assets", "./assets")

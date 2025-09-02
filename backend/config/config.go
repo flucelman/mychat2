@@ -59,6 +59,7 @@ func loadDotEnv() {
 	_ = tryLoadEnv(candidates)
 }
 
+// InitConfig 只初始化配置文件，不连接外部服务
 func InitConfig() {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
@@ -77,6 +78,10 @@ func InitConfig() {
 
 	// 加载环境变量（探测工作目录与可执行目录）
 	loadDotEnv()
+}
+
+// InitServices 初始化所有外部服务连接
+func InitServices() {
 	// 初始化数据库
 	InitDB()
 	InitRedis()
