@@ -69,5 +69,6 @@ export default {
         deleteFailed: 'Message deletion failed',
         resendSuccess: 'Message resend successfully',
         resendFailed: 'Message resend failed',
+        resendMessage: 'Are you sure you want to resend this message?',
     }
 }

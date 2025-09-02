@@ -64,8 +64,8 @@
                 <div v-if="chatConfigStore.instantAssistantMessage == ''" class="loading-container">
                     <Vue3Lottie 
                         :animationData="AILoadingAnimation" 
-                        :height="60" 
-                        :width="60" 
+                        :height="40" 
+                        :width="40" 
                         :loop="true" 
                         :autoplay="true"
                     />

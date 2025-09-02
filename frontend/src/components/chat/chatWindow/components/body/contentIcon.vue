@@ -2,7 +2,7 @@
     <div class="content-icon-container"
         :class="{ 'user-icons': message.role == 'user', 'assistant-icons': message.role == 'assistant' }">
         <deleteIcon class="content-icon" @click="deleteMessage" />
-        <refreshIcon class="content-icon" v-if="message.role == 'assistant'" @click="chatConfigStore.resendMessage(props.message.message_id)" />
+        <refreshIcon class="content-icon" v-if="message.role == 'assistant'" @click="resendMessage" />
         <el-dropdown @command="handleCopyCommand" trigger="click" :teleported="false">
             <copyIcon class="content-icon" />
             <template #dropdown>
@@ -25,8 +25,6 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import copyIcon from '@/assets/icons/复制.svg'
 import deleteIcon from '@/assets/icons/删除.svg'
 import refreshIcon from '@/assets/icons/刷新.svg'
-import { http } from '@/utils/http/client'
-import { API } from '@/router/api'
 import { useChatConfigStore } from '@/stores/chat_config'
 
 const { t: $t } = useI18n()
@@ -109,6 +107,17 @@ const deleteMessage = () => {
         } catch (err) {
             ElMessage.error($t('message.deleteFailed'))
         }
+    })
+}
+
+// 重发消息
+const resendMessage = () => {
+    ElMessageBox.confirm($t('message.resendMessage'), $t('message.confirmTitle'), {
+        confirmButtonText: $t('message.confirm'),
+        cancelButtonText: $t('message.cancel'),
+        type: 'warning',
+    }).then(async () => {
+        await chatConfigStore.resendMessage(props.message.message_id)
     })
 }
 </script>

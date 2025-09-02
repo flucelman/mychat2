@@ -69,5 +69,6 @@ export default {
         deleteFailed: '消息删除失败',
         resendSuccess: '消息重发成功',
         resendFailed: '消息重发失败',
+        resendMessage: '确定要重发该消息吗？',
     }
 }
