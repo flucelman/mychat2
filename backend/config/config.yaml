@@ -1,16 +1,16 @@
 app:
   name: "backend"
-  port: "8000"
+  port: "8080"
 
 database:
-  host: "127.0.0.1"
+  host: "localhost"
   port: "3306"
   username: "root"
   password: ""  #写到了.env文件中
   name: "mychat"
 
 redis:
-  host: "127.0.0.1"
+  host: "localhost"
   port: "6379"
   password: "" #写到了.env文件中
   db: 0
