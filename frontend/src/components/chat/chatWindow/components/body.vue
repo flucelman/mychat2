@@ -1,5 +1,5 @@
 <template>
-    <div class="body-container">
+    <div class="body-container" ref="bodyContainerRef">
         <div class="message-container" v-for="(group, groupIndex) in groupedMessages" :key="groupIndex">
             <!-- 非文件消息 -->
             <div v-if="group.type == 'message'" class="message-item" :class="group.message.role">
@@ -78,11 +78,16 @@
         <el-drawer v-model="searchDrawer" :title="$t('message.onlineSearch')" :direction="'rtl' " class="search-drawer">
             <search-card :search="currentSearchContent" />
         </el-drawer>
+
+        <!-- 到底部按钮 -->
+        <div class="bottom-button" v-show="isBottom" @click="ToBottem">
+            <el-icon><ArrowDownBold /></el-icon>    
+        </div>
     </div>
 </template>
 
 <script setup>
-import { computed, ref, nextTick } from 'vue'
+import { computed, ref, nextTick, watch, onMounted, onUnmounted} from 'vue'
 import { useChatConfigStore } from '@/stores/chat_config'
 const chatConfigStore = useChatConfigStore()
 import { useGlobalSettingStore } from '@/stores/global_setting'
@@ -98,9 +103,69 @@ import MarkdownView from './body/markdownView.vue'
 import ContentIcon from './body/contentIcon.vue'
 import { Vue3Lottie } from 'vue3-lottie'
 import AILoadingAnimation from '@/assets/lottie/AI_loading.json'
+import { ArrowDownBold } from '@element-plus/icons-vue'
+import { useScrollBar } from '@/utils/scrollBar'
+const { scrollToBottom, scrollToTop } = useScrollBar()
 
 const searchDrawer = ref(false)
 const currentSearchContent = ref('')
+const isBottom = ref(false)
+
+const bodyContainerRef = ref(null)
+
+const ToBottem = async () => {
+    await nextTick()
+    scrollToBottom(bodyContainerRef.value)
+}
+
+watch(chatConfigStore.baseMessageHistory, async () => {
+    await nextTick()
+    if (!isBottom.value) {
+        scrollToBottom(bodyContainerRef.value)
+    }else{
+        scrollToTop(bodyContainerRef.value)
+    }
+    // 消息更新后重新检查是否在底部
+    setTimeout(() => {
+        checkIfAtBottom()
+    }, 100)
+})
+
+watch(() => chatConfigStore.instantAssistantMessage, async () => {
+    await nextTick()
+    if (!isBottom.value) {
+        scrollToBottom(bodyContainerRef.value)
+    }
+})
+
+
+// 检查是否在底部
+const checkIfAtBottom = () => {
+    if (!bodyContainerRef.value) return
+    const element = bodyContainerRef.value
+    const isAtBottom = element.scrollTop + element.clientHeight >= element.scrollHeight - 100
+    isBottom.value = !isAtBottom
+}
+
+// 滚动事件处理
+const handleScroll = () => {
+    checkIfAtBottom()
+}
+
+// 组件挂载时添加滚动监听
+onMounted(() => {
+    if (bodyContainerRef.value) {
+        bodyContainerRef.value.addEventListener('scroll', handleScroll)
+        checkIfAtBottom() // 初始检查
+    }
+})
+
+// 组件卸载时移除滚动监听
+onUnmounted(() => {
+    if (bodyContainerRef.value) {
+        bodyContainerRef.value.removeEventListener('scroll', handleScroll)
+    }
+})
 
 // 打开搜索抽屉并设置当前搜索内容
 const openSearchDrawer = (content) => {
@@ -111,8 +176,6 @@ const openSearchDrawer = (content) => {
         searchDrawer.value = true
     })
 }
-
-
 
 // 获取文件类型
 const getFileType = (fileName) => {
@@ -202,6 +265,7 @@ const groupedMessages = computed(() => {
 
     return groups
 })
+
 </script>
 
 <style >
@@ -221,6 +285,7 @@ const groupedMessages = computed(() => {
     /* 隐藏水平滚动条 */
     padding: 10px;
     box-sizing: border-box;
+    position: relative;
 }
 
 
@@ -408,6 +473,21 @@ const groupedMessages = computed(() => {
   padding: 10px 0;
 }
 
+.bottom-button{
+    position: sticky;
+    bottom: 0px;
+    width: 40px;
+    height: 40px;
+    background-color: var(--tertiary-background);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    z-index: 1000;
+    margin-left: auto;
+    margin-right: auto;
+}
 
 
 </style>
