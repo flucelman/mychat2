@@ -1,18 +1,4 @@
 services:
-  mychat-backend:
-    build: .
-    ports:
-      - "8080:8080"
-    env_file:
-      - .env
-    volumes:
-      - ./config:/root/config
-      - ./assets:/root/assets
-    restart: unless-stopped
-    depends_on:
-      - mysql
-      - redis
-
   mysql:
     image: mysql:8.0
     environment:
