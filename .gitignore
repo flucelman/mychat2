@@ -46,3 +46,6 @@ redis*.rdb
 .coverage
 htmlcov/
 .pytest_cache/"backend/.env" 
+
+tmp/
+**/tmp/
