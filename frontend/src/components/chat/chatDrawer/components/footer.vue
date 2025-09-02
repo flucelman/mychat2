@@ -48,13 +48,13 @@ const userDialogVisible = ref(false)
 
 .drawer-footer-item {
     color: var(--text-color);
-    font-size: 18px;
+    font-size: 16px;
     margin-top: 10px;
     background-color: var(--secondary-background);
     padding: 10px;
     border-radius: 10px;
     cursor: pointer;
-    width: 85%;
+    width: 60%;
     text-align: center;
     display: flex;
     align-items: center;

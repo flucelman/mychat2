@@ -12,18 +12,19 @@
                 </div>
             </div>
         </div>
-        <Textarea1 />
+        <Textarea1 ref="textareaRef" />
         <div class="input-container-inner">
             <Plugin />
             <div class="input-container-inner-right">
                 <UploadFiles :key="chatConfigStore.chatId" />
-                <Send />
+                <Send :onAdjustHeight="handleAdjustHeight" />
             </div>
         </div>
     </div>
 </template>
 
 <script setup>
+import { ref } from 'vue'
 import Plugin from './footer/plugin.vue'
 import Send from './footer/send.vue'
 import UploadFiles from './footer/uploadFiles.vue'
@@ -33,6 +34,14 @@ import Textarea1 from './footer/textarea.vue'
 import { useChatConfigStore } from '@/stores/chat_config'
 
 const chatConfigStore = useChatConfigStore()
+const textareaRef = ref(null)
+
+// 处理调整高度的方法
+const handleAdjustHeight = () => {
+    if (textareaRef.value && textareaRef.value.adjustHeight) {
+        textareaRef.value.adjustHeight()
+    }
+}
 
 </script>
 

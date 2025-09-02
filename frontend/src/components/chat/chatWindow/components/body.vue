@@ -15,7 +15,10 @@
                     </div>
                 </div>
                 <div class="message-content">
-                    <MarkdownView :content="group.message.content" />
+                    <div v-if="group.message.role === 'user'" class="user-message-text">
+                        {{ group.message.content }}
+                    </div>
+                    <MarkdownView v-else :content="group.message.content" />
                     <div class="content-icons-wrapper">
                         <ContentIcon :message="group.message" />
                     </div>
@@ -334,6 +337,18 @@ const groupedMessages = computed(() => {
     flex-direction: column;
     justify-content: flex-start;
     align-items: flex-start;
+}
+
+/* 用户消息文本样式 */
+.user-message-text {
+    background-color: var(--tertiary-background);
+    padding: 10px;
+    border-radius: 10px;
+    font-size: 14px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    width: 100%;
 }
 
 /* 用户消息的图标hover效果（通过包装器控制） */

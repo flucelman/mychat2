@@ -23,6 +23,12 @@ const isComposing = ref(false)
 const adjustHeight = async () => {
     await nextTick()
     if (textareaRef.value) {
+        // 如果输入框为空，重置为最小高度
+        if (!chatConfigStore.userMessage || chatConfigStore.userMessage.trim() === '') {
+            textareaRef.value.style.height = '50px' // 重置为最小高度
+            return
+        }
+        
         // 重置高度以获取正确的scrollHeight
         textareaRef.value.style.height = 'auto'
         // 设置新高度
@@ -38,12 +44,12 @@ const adjustHeight = async () => {
 }
 
 const onEnterSend = async (e) => {
+    adjustHeight()
     if (isComposing.value) return
     if (e.shiftKey) return
     if (chatConfigStore.isReceiving) return
     await chatConfigStore.sendUserMessage()
-    await nextTick()
-    adjustHeight()
+    
     if (textareaRef.value) textareaRef.value.focus()
 }
 
@@ -51,12 +57,17 @@ const onEnterSend = async (e) => {
 onMounted(() => {
     adjustHeight()
 })
+
+// 暴露方法给父组件使用
+defineExpose({
+    adjustHeight
+})
 </script>
 
 <style scoped>
 .input-textarea{
     width: 100%;
-    min-height: 40px; /* 最小高度 */
+    min-height: 50px; /* 最小高度 */
     max-height: 120px; /* 最大约5行高度 */
     height: auto;
     background-color: var(--background-color);
