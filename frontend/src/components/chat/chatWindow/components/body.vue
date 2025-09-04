@@ -121,7 +121,19 @@ const ToBottem = async () => {
     scrollToBottom(bodyContainerRef.value)
 }
 
-watch(chatConfigStore.baseMessageHistory, async () => {
+// 创建一个计算属性来获取用户消息
+const userMessages = computed(() => 
+    chatConfigStore.baseMessageHistory.filter(msg => msg.role === 'user')
+)
+
+// 监听用户消息数量的变化
+watch(() => userMessages.value.length, (newCount, oldCount) => {
+    if (newCount > oldCount) {
+        scrollToBottom(bodyContainerRef.value)
+    }
+})
+
+watch(() => chatConfigStore.chatId, async () => {
     await nextTick()
     if (!isBottom.value) {
         scrollToBottom(bodyContainerRef.value)
@@ -349,6 +361,11 @@ const groupedMessages = computed(() => {
     white-space: pre-wrap;
     word-wrap: break-word;
     width: 100%;
+    color: var(--primary-text);
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
 }
 
 /* 用户消息的图标hover效果（通过包装器控制） */

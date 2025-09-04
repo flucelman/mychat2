@@ -2,7 +2,6 @@
     <div class="chat-window-container">
         <HeaderMain/>
         <BodyMain />
-        111
         <FooterMain/>
     </div>
 </template>
@@ -22,7 +21,7 @@ import FooterMain from './components/footer.vue'
     padding: 10px;
     /* 移动端安全区域适配 */
     padding-top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom);
+    padding-bottom: calc(env(safe-area-inset-bottom) + 10px);
     display: flex;
     flex-direction: column;
     align-items: center;

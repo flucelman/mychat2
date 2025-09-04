@@ -8,12 +8,9 @@
 
 <script setup>
 import '@/assets/css/theme.scss'
-import { watch, onMounted } from 'vue'
+import { watch, onMounted, onUnmounted } from 'vue'
 import { useGlobalSettingStore } from '@/stores/global_setting'
 import Auth from '@/views/auth.vue'
-import { useChatConfigStore } from '@/stores/chat_config'
-
-const chatConfigStore = useChatConfigStore()
 
 const globalSettingStore = useGlobalSettingStore()
 
@@ -23,15 +20,73 @@ const applyTheme = (theme) => {
 }
 
 
-// 判断移动端和pc端
+// 判断移动端和pc端 - 更准确的检测方法
 const checkIsMobile = () => {
-  globalSettingStore.isMobile = window.innerWidth < 768
+  // 方法1: 检测用户代理字符串
+  const userAgent = navigator.userAgent.toLowerCase()
+  const mobileKeywords = [
+    'android', 'iphone', 'ipad', 'ipod', 'blackberry', 'windows phone',
+    'mobile', 'webos', 'opera mini', 'iemobile', 'kindle'
+  ]
+  const isMobileUserAgent = mobileKeywords.some(keyword => userAgent.includes(keyword))
+  
+  // 方法2: 检测触摸支持
+  const hasTouchSupport = 'ontouchstart' in window || navigator.maxTouchPoints > 0
+  
+  // 方法3: 检测屏幕尺寸和像素密度
+  const screenWidth = window.innerWidth
+  const screenHeight = window.innerHeight
+  const isSmallScreen = screenWidth <= 768 || screenHeight <= 1024
+  
+  // 方法4: 检测设备方向支持
+  const hasOrientationSupport = 'orientation' in window || 'onorientationchange' in window
+  
+  // 方法5: 检测CSS媒体查询
+  const isPointerCoarse = window.matchMedia('(pointer: coarse)').matches
+  const isHoverNone = window.matchMedia('(hover: none)').matches
+  
+  // 综合判断 - 多个条件满足则认为是移动端
+  const mobileIndicators = [
+    isMobileUserAgent,
+    hasTouchSupport && isSmallScreen,
+    isPointerCoarse,
+    isHoverNone,
+    hasOrientationSupport && isSmallScreen
+  ]
+  
+  const mobileScore = mobileIndicators.filter(Boolean).length
+  
+  // 如果满足2个或以上条件，则认为是移动端
+  globalSettingStore.isMobile = mobileScore >= 2
 }
 
 // 初始化主题
 onMounted(() => {
   applyTheme(globalSettingStore.theme)
   checkIsMobile()
+  
+  // 监听窗口尺寸变化
+  const handleResize = () => {
+    checkIsMobile()
+  }
+  
+  // 监听设备方向变化
+  const handleOrientationChange = () => {
+    // 延迟执行，确保方向变化完成后再检测
+    setTimeout(() => {
+      checkIsMobile()
+    }, 100)
+  }
+  
+  // 添加事件监听器
+  window.addEventListener('resize', handleResize)
+  window.addEventListener('orientationchange', handleOrientationChange)
+  
+  // 使用onUnmounted清理事件监听器
+  onUnmounted(() => {
+    window.removeEventListener('resize', handleResize)
+    window.removeEventListener('orientationchange', handleOrientationChange)
+  })
 })
 
 // 监听主题变化

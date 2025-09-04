@@ -1,5 +1,5 @@
 <template>
-    <div class="input-container">
+    <div class="input-container" id="input-container-id">
         <div class="files-container">
             <div v-if="chatConfigStore.filesInfo.length > 0" class="uploading-files-container">
                 <div v-for="info in chatConfigStore.filesInfo" :key="info.file_id">
@@ -12,7 +12,7 @@
                 </div>
             </div>
         </div>
-        <Textarea1 ref="textareaRef" />
+        <Textarea1 ref="textareaRef" @focus="handleFocus" @blur="handleBlur"/>
         <div class="input-container-inner">
             <Plugin />
             <div class="input-container-inner-right">
@@ -32,7 +32,9 @@ import showFilesPlaceholder from './footer/showFilesPlaceholder.vue'
 import showFiles from './footer/showFiles.vue'
 import Textarea1 from './footer/textarea.vue'
 import { useChatConfigStore } from '@/stores/chat_config'
+import { useGlobalSettingStore } from '@/stores/global_setting'
 
+const globalSettingStore = useGlobalSettingStore()
 const chatConfigStore = useChatConfigStore()
 const textareaRef = ref(null)
 
@@ -41,6 +43,33 @@ const handleAdjustHeight = () => {
     if (textareaRef.value && textareaRef.value.adjustHeight) {
         textareaRef.value.adjustHeight()
     }
+}
+
+const handleFocus = () => {
+    if (!globalSettingStore.isMobile) {
+        return
+    }
+    const inputContainer = document.getElementById("input-container-id");
+    inputContainer.style.position = "absolute";
+    inputContainer.style.bottom = "50%";
+    inputContainer.style.transform = "translateY(50%)";
+    inputContainer.style.zIndex = "1000";
+    inputContainer.style.backgroundColor = "var(--background-color)";
+}
+
+const handleBlur = () => {
+    // 添加短暂延迟，确保点击事件能够正常触发
+    if (!globalSettingStore.isMobile) {
+        return
+    }
+    setTimeout(() => {
+        const inputContainer = document.getElementById("input-container-id");
+        inputContainer.style.position = "";
+        inputContainer.style.bottom = "";
+        inputContainer.style.transform = "";
+        inputContainer.style.zIndex = "";
+        inputContainer.style.backgroundColor = "";
+    }, 100);
 }
 
 </script>
