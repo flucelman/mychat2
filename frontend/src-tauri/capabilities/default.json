@@ -8,7 +8,7 @@
     "opener:default",
     {
       "identifier": "http:default",
-      "allow": [{ "url": "https://*" },{ "url": "http://*" },{ "url": "http://192.168.14.125:8000/*" }]
+      "allow": [{ "url": "https://*" },{ "url": "http://*" },{ "url": "https://test.mychat.ink/*" }]
     }
   ]
 }

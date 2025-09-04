@@ -2,6 +2,7 @@
     <div class="chat-window-container">
         <HeaderMain/>
         <BodyMain />
+        111
         <FooterMain/>
     </div>
 </template>
@@ -16,16 +17,17 @@ import FooterMain from './components/footer.vue'
 .chat-window-container {
     width: 100%;
     height: 100vh; /* 减去padding的高度 */
+    height: 100dvh;
     background-color: var(--background-color);
     padding: 10px;
-    /* 移动端顶部安全区域适配 */
+    /* 移动端安全区域适配 */
     padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 10px;
     overflow: hidden; /* 防止内容溢出 */
-
 }
 
 </style>

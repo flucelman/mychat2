@@ -42,6 +42,7 @@ onMounted(() => {
 .chat-container {
     width: 100%;
     height: 100vh;
+    height: 100dvh;
     background-color: var(--background-color);
     color: var(--text-color);
     display: flex;

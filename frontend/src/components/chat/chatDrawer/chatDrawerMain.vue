@@ -26,6 +26,7 @@ onMounted(() => {
     border-right: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
+    padding-bottom: env(safe-area-inset-bottom);
 }
 
 .drawer-header {

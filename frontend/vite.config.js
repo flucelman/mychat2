@@ -30,23 +30,25 @@ export default defineConfig({
     })
   ],
   server: {
-    host: 'localhost', // 自定义主机名
+    host: '0.0.0.0', // 自定义主机名
     port: 9000, // 自定义端口
     strictPort: true,
     cors: true,
     // 临时测试：完全禁用HMR
     // hmr: false,
     hmr: {
+      host: '192.168.31.156',
       port: 9001,
-      host: 'localhost'
+      clientPort: 9001,
+      protocol: 'ws'
     },
-   // 检测到/api则代理到后端
-    proxy: {
-     '/api': {
-        target: 'http://0.0.0.0:8000',
-        changeOrigin: true,
-       }
-     }
+  //  // 检测到/api则代理到后端
+  //   proxy: {
+  //    '/api': {
+  //       target: 'http://47.108.218.167:8080',
+  //       changeOrigin: true,
+  //      }
+  //    }
   },
   resolve: {
     alias: {
