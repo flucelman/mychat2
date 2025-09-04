@@ -15,7 +15,9 @@
 <script setup>
 import { ref, nextTick, onMounted } from 'vue'
 import { useChatConfigStore } from '@/stores/chat_config'
+import { useGlobalSettingStore } from '@/stores/global_setting'
 const chatConfigStore = useChatConfigStore()
+const globalSettingStore = useGlobalSettingStore()
 const textareaRef = ref(null)
 const isComposing = ref(false)
 
@@ -33,7 +35,7 @@ const adjustHeight = async () => {
         textareaRef.value.style.height = 'auto'
         // 设置新高度
         const scrollHeight = textareaRef.value.scrollHeight
-        const maxHeight = parseFloat(getComputedStyle(textareaRef.value).maxHeight)
+        const maxHeight = parseFloat(getComputedStyle(textareaRef.value).maxHeight) 
         
         if (scrollHeight < maxHeight) {
             textareaRef.value.style.height = scrollHeight + 'px'
@@ -45,6 +47,15 @@ const adjustHeight = async () => {
 
 const onEnterSend = async (e) => {
     adjustHeight()
+    
+    // 移动端只允许换行，不发送消息
+    if (globalSettingStore.isMobile) {
+        // 换行
+        chatConfigStore.userMessage += '\n'
+        return
+    }
+    
+    // PC端的发送逻辑
     if (isComposing.value) return
     if (e.shiftKey) return
     if (chatConfigStore.isReceiving) return

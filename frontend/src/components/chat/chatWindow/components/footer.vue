@@ -1,5 +1,6 @@
 <template>
-    <div class="input-container" id="input-container-id">
+    <div class="input-container" id="input-container-id" v-show="showInputBox">
+        <DropdownIcon class="dropdown-icon" @click="showInputBox=false" />
         <div class="files-container">
             <div v-if="chatConfigStore.filesInfo.length > 0" class="uploading-files-container">
                 <div v-for="info in chatConfigStore.filesInfo" :key="info.file_id">
@@ -21,6 +22,7 @@
             </div>
         </div>
     </div>
+    <UpIcon class="up-icon" @click="showInputBox=true" v-if="!showInputBox" />
 </template>
 
 <script setup>
@@ -33,10 +35,13 @@ import showFiles from './footer/showFiles.vue'
 import Textarea1 from './footer/textarea.vue'
 import { useChatConfigStore } from '@/stores/chat_config'
 import { useGlobalSettingStore } from '@/stores/global_setting'
+import DropdownIcon from '@/assets/icons/下拉.svg'
+import UpIcon from '@/assets/icons/上拉.svg'
 
 const globalSettingStore = useGlobalSettingStore()
 const chatConfigStore = useChatConfigStore()
 const textareaRef = ref(null)
+const showInputBox = ref(false)
 
 // 处理调整高度的方法
 const handleAdjustHeight = () => {
@@ -88,6 +93,23 @@ const handleBlur = () => {
     }
 }
 
+.dropdown-icon {
+        width: 30px;
+        height: 30px;
+        color: var(--icon-color-light);
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        cursor: pointer;
+}
+
+.up-icon {
+    width: 30px;
+    height: 30px;
+    color: var(--icon-color-light);
+    cursor: pointer;
+}
+
 .input-container {
     display: flex;
     justify-content: center;
@@ -99,6 +121,7 @@ const handleBlur = () => {
     padding: 2px 16px 16px 16px;
     box-shadow: var(--shadow-color);
     transition: box-shadow 0.3s ease, transform 0.2s ease;
+    position: relative;
 }
 
 .input-container:hover {
