@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+	"unicode/utf8"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -223,10 +224,15 @@ func AddChatMessage(ctx *gin.Context) {
 					for _, msg := range input.MessageHistory {
 						if role, ok := msg["role"].(string); ok && role == "user" {
 							if content, ok := msg["content"].(string); ok && content != "" {
-								if len(content) <= 30 {
+								if utf8.RuneCountInString(content) <= 30 {
 									return content
 								}
-								return content[:28] + "..."
+								// 安全截取UTF-8字符串，确保不会截断中文字符
+								runes := []rune(content)
+								if len(runes) > 32 {
+									return string(runes[:32]) + "..."
+								}
+								return content
 							}
 						}
 					}
