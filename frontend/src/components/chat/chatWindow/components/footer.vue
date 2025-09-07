@@ -41,7 +41,7 @@ import UpIcon from '@/assets/icons/上拉.svg'
 const globalSettingStore = useGlobalSettingStore()
 const chatConfigStore = useChatConfigStore()
 const textareaRef = ref(null)
-const showInputBox = ref(false)
+const showInputBox = ref(true)
 
 // 处理调整高度的方法
 const handleAdjustHeight = () => {

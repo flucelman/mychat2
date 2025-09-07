@@ -37,7 +37,7 @@ export default defineConfig({
     // 临时测试：完全禁用HMR
     // hmr: false,
     hmr: {
-      host: '192.168.31.156',
+      host: '192.168.241.125',
       port: 9001,
       clientPort: 9001,
       protocol: 'ws'
