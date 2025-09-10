@@ -15,8 +15,8 @@ export default {
         language: 'Language',
         theme: 'Theme',
         input_placeholder: 'Please enter content',
-        deepThinking: 'Deep Thinking',
-        onlineSearch: 'Online Search',
+        planExecutor: 'Plan',
+        onlineSearch: 'Search',
         login: 'Login',
         register: 'Register',
         email: 'Email',
@@ -70,5 +70,8 @@ export default {
         resendSuccess: 'Message resend successfully',
         resendFailed: 'Message resend failed',
         resendMessage: 'Are you sure you want to resend this message?',
+        todoList: 'To-Do List',
+        task: 'Task Steps',
+        summary: 'Summary',
     }
 }

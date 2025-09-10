@@ -21,6 +21,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// 普通AI响应请求
 type AIStreamRequest struct {
 	state            protoimpl.MessageState `protogen:"open.v1"`
 	Model            string                 `protobuf:"bytes,1,opt,name=model,proto3" json:"model,omitempty"`
@@ -241,6 +242,58 @@ func (x *AIStreamResponseReply) GetContent() string {
 	return ""
 }
 
+type PlanExecutorReply struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Content       string                 `protobuf:"bytes,1,opt,name=content,proto3" json:"content,omitempty"`
+	Process       string                 `protobuf:"bytes,2,opt,name=process,proto3" json:"process,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PlanExecutorReply) Reset() {
+	*x = PlanExecutorReply{}
+	mi := &file_AIResponse_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PlanExecutorReply) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PlanExecutorReply) ProtoMessage() {}
+
+func (x *PlanExecutorReply) ProtoReflect() protoreflect.Message {
+	mi := &file_AIResponse_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PlanExecutorReply.ProtoReflect.Descriptor instead.
+func (*PlanExecutorReply) Descriptor() ([]byte, []int) {
+	return file_AIResponse_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *PlanExecutorReply) GetContent() string {
+	if x != nil {
+		return x.Content
+	}
+	return ""
+}
+
+func (x *PlanExecutorReply) GetProcess() string {
+	if x != nil {
+		return x.Process
+	}
+	return ""
+}
+
 var File_AIResponse_proto protoreflect.FileDescriptor
 
 const file_AIResponse_proto_rawDesc = "" +
@@ -263,10 +316,14 @@ const file_AIResponse_proto_rawDesc = "" +
 	"\afileUrl\x18\x04 \x01(\tR\afileUrl\x12 \n" +
 	"\vfileContent\x18\x05 \x01(\tR\vfileContent\"1\n" +
 	"\x15AIStreamResponseReply\x12\x18\n" +
-	"\acontent\x18\x01 \x01(\tR\acontent2Y\n" +
+	"\acontent\x18\x01 \x01(\tR\acontent\"G\n" +
+	"\x11planExecutorReply\x12\x18\n" +
+	"\acontent\x18\x01 \x01(\tR\acontent\x12\x18\n" +
+	"\aprocess\x18\x02 \x01(\tR\aprocess2\xaf\x01\n" +
 	"\aGreeter\x12N\n" +
 	"\n" +
-	"AIResponse\x12\x1b.AIResponse.AIStreamRequest\x1a!.AIResponse.AIStreamResponseReply0\x01B\x0eZ\f./AIResponseb\x06proto3"
+	"AIResponse\x12\x1b.AIResponse.AIStreamRequest\x1a!.AIResponse.AIStreamResponseReply0\x01\x12T\n" +
+	"\x14planExecutorResponse\x12\x1b.AIResponse.AIStreamRequest\x1a\x1d.AIResponse.planExecutorReply0\x01B\x0eZ\f./AIResponseb\x06proto3"
 
 var (
 	file_AIResponse_proto_rawDescOnce sync.Once
@@ -280,18 +337,21 @@ func file_AIResponse_proto_rawDescGZIP() []byte {
 	return file_AIResponse_proto_rawDescData
 }
 
-var file_AIResponse_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_AIResponse_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_AIResponse_proto_goTypes = []any{
 	(*AIStreamRequest)(nil),       // 0: AIResponse.AIStreamRequest
 	(*Message)(nil),               // 1: AIResponse.Message
 	(*AIStreamResponseReply)(nil), // 2: AIResponse.AIStreamResponseReply
+	(*PlanExecutorReply)(nil),     // 3: AIResponse.planExecutorReply
 }
 var file_AIResponse_proto_depIdxs = []int32{
 	1, // 0: AIResponse.AIStreamRequest.messageHistory:type_name -> AIResponse.Message
 	0, // 1: AIResponse.Greeter.AIResponse:input_type -> AIResponse.AIStreamRequest
-	2, // 2: AIResponse.Greeter.AIResponse:output_type -> AIResponse.AIStreamResponseReply
-	2, // [2:3] is the sub-list for method output_type
-	1, // [1:2] is the sub-list for method input_type
+	0, // 2: AIResponse.Greeter.planExecutorResponse:input_type -> AIResponse.AIStreamRequest
+	2, // 3: AIResponse.Greeter.AIResponse:output_type -> AIResponse.AIStreamResponseReply
+	3, // 4: AIResponse.Greeter.planExecutorResponse:output_type -> AIResponse.planExecutorReply
+	3, // [3:5] is the sub-list for method output_type
+	1, // [1:3] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
 	1, // [1:1] is the sub-list for extension extendee
 	0, // [0:1] is the sub-list for field type_name
@@ -308,7 +368,7 @@ func file_AIResponse_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_AIResponse_proto_rawDesc), len(file_AIResponse_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

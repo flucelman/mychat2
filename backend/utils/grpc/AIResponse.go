@@ -26,11 +26,13 @@ func AIStreamResponse(
 	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		fmt.Println("连接失败: ", err)
-		return ""
+		answerCh <- "ERROR:连接失败: " + err.Error()
+		close(answerCh)
+		return err.Error()
 	}
 	defer conn.Close()
 
-	ctx, cancel := context.WithTimeout(ctx, time.Minute)
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Minute)
 	defer cancel()
 	client := AIResponse.NewGreeterClient(conn)
 
@@ -72,7 +74,9 @@ func AIStreamResponse(
 	stream, err := client.AIResponse(ctx, request)
 	if err != nil {
 		fmt.Println("调用服务失败: ", err)
-		return ""
+		answerCh <- "ERROR:调用服务失败: " + err.Error()
+		close(answerCh)
+		return err.Error()
 	}
 	for {
 		response, err := stream.Recv()
@@ -82,11 +86,98 @@ func AIStreamResponse(
 		}
 		if err != nil {
 			fmt.Println("接收响应失败: ", err)
-			return ""
+			answerCh <- "ERROR:接收响应失败: " + err.Error()
+			close(answerCh)
+			return err.Error()
 		}
 		// 打印每个流式响应片段
 		answerCh <- response.GetContent()
 	}
 	close(answerCh)
+	return ""
+}
+
+func PlanExecutorResponse(
+	ctx context.Context,
+	answerCh chan<- string,
+	model string,
+	apiKey string,
+	baseUrl string,
+	aiConfig map[string]any,
+	messageHistory []map[string]any) string {
+	addr := os.Getenv("GRPC_AIRESPONSE")
+	fmt.Println("addr:", addr)
+	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		fmt.Println("连接失败: ", err)
+		answerCh <- "ERROR:连接失败: " + err.Error()
+		close(answerCh)
+		return err.Error()
+	}
+	defer conn.Close()
+	// 创建gRPC客户端
+	client := AIResponse.NewGreeterClient(conn)
+	// 转换消息历史格式
+	messages := make([]*AIResponse.Message, 0, len(messageHistory))
+	for _, msg := range messageHistory {
+		message := &AIResponse.Message{
+			Role: msg["role"].(string),
+		}
+		// 可选字段
+		if content, ok := msg["content"].(string); ok {
+			message.Content = content
+		}
+		if fileType, ok := msg["file_type"].(string); ok {
+			message.FileType = fileType
+		}
+		if fileUrl, ok := msg["file_url"].(string); ok {
+			message.FileUrl = fileUrl
+		}
+		if fileContent, ok := msg["file_content"].(string); ok {
+			message.FileContent = fileContent
+		}
+		messages = append(messages, message)
+	}
+	request := &AIResponse.AIStreamRequest{
+		Model:            model,
+		ApiKey:           apiKey,
+		BaseUrl:          baseUrl,
+		Temperature:      float32(aiConfig["temperature"].(float64)),
+		MaxTokens:        int32(aiConfig["max_tokens"].(float64)),
+		TopP:             float32(aiConfig["top_p"].(float64)),
+		FrequencyPenalty: float32(aiConfig["frequency_penalty"].(float64)),
+		MessageHistory:   messages,
+	}
+	stream, err := client.PlanExecutorResponse(ctx, request)
+	if err != nil {
+		fmt.Println("调用服务失败: ", err)
+		answerCh <- "ERROR:调用服务失败: " + err.Error()
+		close(answerCh)
+		return err.Error()
+	}
+	// 接收流式响应
+	fmt.Println("开始接收响应流...")
+	for {
+		response, err := stream.Recv()
+		if err != nil {
+			if err.Error() == "EOF" {
+				fmt.Println("响应流结束")
+				break
+			}
+			fmt.Println("接收响应失败: ", err)
+			answerCh <- "ERROR:接收响应失败: " + err.Error()
+			close(answerCh)
+			return err.Error()
+		}
+		// 处理进度信息
+		if response.GetProcess() != "" {
+			answerCh <- response.GetProcess()
+		}
+		if response.GetContent() != "" {
+			answerCh <- response.GetContent()
+		}
+	}
+	close(answerCh)
+
 	return ""
 }

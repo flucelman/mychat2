@@ -19,7 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Greeter_AIResponse_FullMethodName = "/AIResponse.Greeter/AIResponse"
+	Greeter_AIResponse_FullMethodName           = "/AIResponse.Greeter/AIResponse"
+	Greeter_PlanExecutorResponse_FullMethodName = "/AIResponse.Greeter/planExecutorResponse"
 )
 
 // GreeterClient is the client API for Greeter service.
@@ -27,6 +28,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type GreeterClient interface {
 	AIResponse(ctx context.Context, in *AIStreamRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[AIStreamResponseReply], error)
+	PlanExecutorResponse(ctx context.Context, in *AIStreamRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[PlanExecutorReply], error)
 }
 
 type greeterClient struct {
@@ -56,11 +58,31 @@ func (c *greeterClient) AIResponse(ctx context.Context, in *AIStreamRequest, opt
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type Greeter_AIResponseClient = grpc.ServerStreamingClient[AIStreamResponseReply]
 
+func (c *greeterClient) PlanExecutorResponse(ctx context.Context, in *AIStreamRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[PlanExecutorReply], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Greeter_ServiceDesc.Streams[1], Greeter_PlanExecutorResponse_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[AIStreamRequest, PlanExecutorReply]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Greeter_PlanExecutorResponseClient = grpc.ServerStreamingClient[PlanExecutorReply]
+
 // GreeterServer is the server API for Greeter service.
 // All implementations must embed UnimplementedGreeterServer
 // for forward compatibility.
 type GreeterServer interface {
 	AIResponse(*AIStreamRequest, grpc.ServerStreamingServer[AIStreamResponseReply]) error
+	PlanExecutorResponse(*AIStreamRequest, grpc.ServerStreamingServer[PlanExecutorReply]) error
 	mustEmbedUnimplementedGreeterServer()
 }
 
@@ -73,6 +95,9 @@ type UnimplementedGreeterServer struct{}
 
 func (UnimplementedGreeterServer) AIResponse(*AIStreamRequest, grpc.ServerStreamingServer[AIStreamResponseReply]) error {
 	return status.Errorf(codes.Unimplemented, "method AIResponse not implemented")
+}
+func (UnimplementedGreeterServer) PlanExecutorResponse(*AIStreamRequest, grpc.ServerStreamingServer[PlanExecutorReply]) error {
+	return status.Errorf(codes.Unimplemented, "method PlanExecutorResponse not implemented")
 }
 func (UnimplementedGreeterServer) mustEmbedUnimplementedGreeterServer() {}
 func (UnimplementedGreeterServer) testEmbeddedByValue()                 {}
@@ -106,6 +131,17 @@ func _Greeter_AIResponse_Handler(srv interface{}, stream grpc.ServerStream) erro
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type Greeter_AIResponseServer = grpc.ServerStreamingServer[AIStreamResponseReply]
 
+func _Greeter_PlanExecutorResponse_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AIStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(GreeterServer).PlanExecutorResponse(m, &grpc.GenericServerStream[AIStreamRequest, PlanExecutorReply]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Greeter_PlanExecutorResponseServer = grpc.ServerStreamingServer[PlanExecutorReply]
+
 // Greeter_ServiceDesc is the grpc.ServiceDesc for Greeter service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -117,6 +153,11 @@ var Greeter_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "AIResponse",
 			Handler:       _Greeter_AIResponse_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "planExecutorResponse",
+			Handler:       _Greeter_PlanExecutorResponse_Handler,
 			ServerStreams: true,
 		},
 	},

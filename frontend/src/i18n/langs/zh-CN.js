@@ -15,7 +15,7 @@ export default {
         language: '语言',
         theme: '主题',
         input_placeholder: '请输入内容',
-        deepThinking: '深度思考',
+        planExecutor: '任务规划',
         onlineSearch: '联网搜索',
         login: '登录',
         register: '注册',
@@ -70,5 +70,8 @@ export default {
         resendSuccess: '消息重发成功',
         resendFailed: '消息重发失败',
         resendMessage: '确定要重发该消息吗？',
+        todoList: '待办清单',
+        task: '任务步骤',
+        summary: '总结',
     }
 }

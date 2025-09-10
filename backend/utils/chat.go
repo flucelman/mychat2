@@ -52,3 +52,14 @@ func AIStreamResponse(
 
 	grpc.AIStreamResponse(ctx, answerCh, model, apiKey, baseURL, aiConfig, message_history)
 }
+
+func PlanExecutorResponse(
+	ctx context.Context,
+	answerCh chan<- string,
+	apiKey,
+	baseURL,
+	model string,
+	aiConfig map[string]any,
+	message_history []map[string]any) {
+	grpc.PlanExecutorResponse(ctx, answerCh, model, apiKey, baseURL, aiConfig, message_history)
+}

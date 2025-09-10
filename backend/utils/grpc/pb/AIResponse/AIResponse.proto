@@ -1,13 +1,14 @@
 syntax = "proto3";
-
 option go_package = "./AIResponse";
 
 package AIResponse;
 
 service Greeter {
     rpc AIResponse (AIStreamRequest) returns (stream AIStreamResponseReply);
+    rpc planExecutorResponse (AIStreamRequest) returns (stream planExecutorReply);
 }
 
+// 普通AI响应请求
 message AIStreamRequest {
     string model = 1;
     string apiKey = 2;
@@ -29,4 +30,9 @@ message Message {
 
 message AIStreamResponseReply {
     string content = 1;
+}
+
+message planExecutorReply {
+    string content = 1;
+    string process = 2;
 }

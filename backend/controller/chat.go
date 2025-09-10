@@ -335,7 +335,13 @@ func AddChatMessage(ctx *gin.Context) {
 	// 8. 启动AI流式响应
 	modelKey := config.GetModelKey(model) // 使用之前已经验证过的model变量
 	apiKey, baseURL := config.GetAIConfig(model)
-	go utils.AIStreamResponse(answerCtx, answerCh, apiKey, baseURL, modelKey, input.AIConfig, input.MessageHistory)
+	if input.AIConfig["planExecutor"] == true {
+		fmt.Println("启动计划执行器")
+		go utils.PlanExecutorResponse(answerCtx, answerCh, apiKey, baseURL, modelKey, input.AIConfig, input.MessageHistory)
+	} else {
+		fmt.Println("启动AI流式响应")
+		go utils.AIStreamResponse(answerCtx, answerCh, apiKey, baseURL, modelKey, input.AIConfig, input.MessageHistory)
+	}
 
 	// 9. 处理流式响应并通过SSE发送
 	fullResponse := ""
@@ -355,6 +361,17 @@ func AddChatMessage(ctx *gin.Context) {
 				}
 				return
 			}
+
+			// 检查是否是错误消息
+			if len(content) > 6 && content[:6] == "ERROR:" {
+				// 发送错误信息并断开连接
+				fmt.Println("gRPC服务错误：", content)
+				ctx.SSEvent("error", gin.H{"error": content[6:]}) // 去掉ERROR:前缀
+				ctx.Writer.Flush()
+				cancel()
+				return
+			}
+
 			// 发送内容片段
 			ctx.SSEvent("content", gin.H{"content": content})
 			fullResponse += content

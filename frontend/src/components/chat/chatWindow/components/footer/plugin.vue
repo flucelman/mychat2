@@ -1,8 +1,10 @@
 <template>
     <div class="plugin-container">
-        <div class="plugin-item">
+        <div class="plugin-item"
+            @click="chatConfigStore.AIConfig.planExecutor = !chatConfigStore.AIConfig.planExecutor"
+            :class="{ 'active': chatConfigStore.AIConfig.planExecutor }">
             <DeepThinkingIcon class="plugin-item-icon" />
-            {{ $t('message.deepThinking') }}
+            {{ $t('message.planExecutor') }}
         </div>
         <div class="plugin-item"
             @click="chatConfigStore.AIConfig.online_search = !chatConfigStore.AIConfig.online_search"
